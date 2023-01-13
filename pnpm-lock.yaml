@@ -4,6 +4,7 @@ specifiers:
   '@types/node': ^18.0.0
   '@types/react': ^18.0.26
   '@types/react-dom': ^18.0.10
+  discord-api-types: ^0.37.28
   eslint-config-prettier: ^8.6.0
   prettier: ^2.8.2
   react: ^18.2.0
@@ -15,6 +16,7 @@ dependencies:
   '@types/node': 18.11.18
   '@types/react': 18.0.26
   '@types/react-dom': 18.0.10
+  discord-api-types: 0.37.28
   eslint-config-prettier: 8.6.0
   prettier: 2.8.2
   react: 18.2.0
@@ -4007,6 +4009,10 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       path-type: 4.0.0
+    dev: false
+
+  /discord-api-types/0.37.28:
+    resolution: {integrity: sha512-K0fw7m7km9th3dCQ2AR90q/FwX3uAj+OLc+Zuo39VY9vCn0Ux/iObM4y1zJYIH3vTc+QlrksVErUvyeONjOKMQ==}
     dev: false
 
   /dlv/1.1.3:
