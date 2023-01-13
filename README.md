@@ -34,5 +34,3 @@ You can now run scripts using `pnpm <script name>`, e.g. `pnpm start`.
 -   `lint` Makes sure code follows style rules.
 -   `typecheck` Makes sure there are no type errors in the code.
 -   `check-all` Does linting and typechecking.
-
-# Dependency Reference
