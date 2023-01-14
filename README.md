@@ -1,6 +1,6 @@
 # Anime Image Retrieval And Modification Interface
 
-[![CodeQL](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/codeql-analysis.yml)[![CI](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/node.js.ci.yml/badge.svg)](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/node.js.ci.yml)[![Deploy](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/deploy.yml/badge.svg)](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/deploy.yml)
+[![CodeQL](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/codeql-analysis.yml)[![CI](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/node.js.ci.yml/badge.svg)](https://github.com/Weebs-Incorporated/AIRAMI/actions/workflows/node.js.ci.yml)
 
 A website that interacts with [AIMS](https://github.com/Weebs-Incorporated/AIMS).
 
