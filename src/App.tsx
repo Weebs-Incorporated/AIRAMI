@@ -1,18 +1,30 @@
-import React from 'react';
-import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import CssBaseline from '@mui/material/CssBaseline';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
+
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
+import theme from './theme';
+import ContextProviders from './providers';
+import { HomePage, NotFoundPage, SettingsPage } from './pages';
 
 function App() {
     return (
-        <div className="App">
-            <header className="App-header">
-                <p>
-                    Edit <code>src/App.tsx</code> and save to reload.
-                </p>
-                <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-                    Learn React
-                </a>
-            </header>
-        </div>
+        <BrowserRouter>
+            <ThemeProvider theme={theme}>
+                <CssBaseline enableColorScheme />
+                <ContextProviders>
+                    <Routes>
+                        <Route index element={<HomePage />} />
+                        <Route path="settings" element={<SettingsPage />} />
+                        <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                </ContextProviders>
+            </ThemeProvider>
+        </BrowserRouter>
     );
 }
 

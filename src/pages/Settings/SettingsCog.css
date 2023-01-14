@@ -1,0 +1,41 @@
+svg.settingsCog {
+    animation: settingsCogRotate 10s linear infinite paused;
+}
+
+svg.settingsCog.active {
+    animation-play-state: running;
+}
+
+svg.settingsCog.hyper {
+    animation-play-state: running;
+    animation: settingsCogRotateHyper 1s linear infinite;
+}
+
+@keyframes settingsCogRotate {
+    from {
+        rotate: 0deg;
+    }
+    to {
+        rotate: 360deg;
+    }
+}
+
+@keyframes settingsCogRotateHyper {
+    0% {
+        rotate: 0deg;
+        color: #de8316;
+    }
+    20% {
+        color: #f57624;
+    }
+    40% {
+        color: #de4916;
+    }
+    80% {
+        color: #fa3119;
+    }
+    100% {
+        rotate: 360deg;
+        color: #de8316;
+    }
+}

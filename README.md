@@ -27,6 +27,8 @@ pnpm install
 
 You can now run scripts using `pnpm <script name>`, e.g. `pnpm start`.
 
+Once the app is running, you can go to the [/settings](http://localhost:3000/settings) page to change config options like API URL, Discord client ID, etc...
+
 # Script Reference
 
 -   `start` Starts the client in development mode, with hot-reloading enabled.
