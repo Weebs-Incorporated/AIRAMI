@@ -1,5 +1,5 @@
 import { AIMS } from '../../types';
-import { RateLimited, RateLimitedResponse } from '../../types/CommonResponses';
+import { RateLimitedResponse } from '../../types/CommonResponses';
 import { Responsify, ServerResponse } from '../../types/ResponseTypes';
 import { UserSessionControllers, IUserSessionContext } from './UserSessionTypes';
 
