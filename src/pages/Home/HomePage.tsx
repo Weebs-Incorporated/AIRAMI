@@ -1,5 +1,6 @@
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import { LoginButton } from '../../components/Buttons';
 import { InternalLink } from '../../components/Links';
 
 export const HomePage = () => {
@@ -14,6 +15,7 @@ export const HomePage = () => {
                     Settings
                 </Button>
             </InternalLink>
+            <LoginButton />
         </>
     );
 };

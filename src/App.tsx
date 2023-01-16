@@ -10,6 +10,7 @@ import '@fontsource/roboto/700.css';
 import theme from './theme';
 import ContextProviders from './providers';
 import { HomePage, NotFoundPage, SettingsPage } from './pages';
+import LoginPage from './pages/Login/LoginPage';
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                     <Routes>
                         <Route index element={<HomePage />} />
                         <Route path="settings" element={<SettingsPage />} />
+                        <Route path="login" element={<LoginPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </ContextProviders>
