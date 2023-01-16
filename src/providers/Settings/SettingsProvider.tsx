@@ -1,11 +1,18 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { defaultSettings, ISettingsContext, Settings, SettingsContext, SettingsControllers } from '../../contexts';
+import {
+    defaultSettings,
+    ISettingsContext,
+    Settings,
+    SettingsContext,
+    SettingsControllers,
+    SettingsSessionData,
+} from '../../contexts';
 import { generateSessionData, getLocalSettings, saveLocalSettings } from './SettingsHelpers';
 
 const SettingsContextProvider = ({ children }: { children: ReactNode }) => {
     const [settings, setSettings] = useState<Settings>(getLocalSettings);
 
-    const sessionData = useMemo(
+    const sessionData = useMemo<SettingsSessionData>(
         () => generateSessionData(settings.discordApplicationId, settings.redirectUri),
         [settings.discordApplicationId, settings.redirectUri],
     );
@@ -24,7 +31,7 @@ const SettingsContextProvider = ({ children }: { children: ReactNode }) => {
 
     const finalValue = useMemo<ISettingsContext>(() => {
         return { settings, controllers: { setValue, resetValue }, sessionData };
-    }, [resetValue, sessionData, setValue, settings]);
+    }, [sessionData, settings, resetValue, setValue]);
 
     return <SettingsContext.Provider value={finalValue}>{children}</SettingsContext.Provider>;
 };

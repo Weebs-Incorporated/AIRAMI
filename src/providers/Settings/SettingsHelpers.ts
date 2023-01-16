@@ -5,12 +5,10 @@ const KEY_SETTINGS_STATE = 'AIRAMI.Settings.State';
 
 export function getLocalSettings(): Settings {
     const existing = localStorage.getItem(KEY_SETTINGS);
-    if (existing !== null) {
-        const existingSettings = JSON.parse(existing) as Settings;
 
-        return { ...defaultSettings, ...existingSettings };
-    }
-    return { ...defaultSettings };
+    if (existing === null) return { ...defaultSettings };
+
+    return { ...defaultSettings, ...JSON.parse(existing) };
 }
 
 export function saveLocalSettings(s: Settings): void {
