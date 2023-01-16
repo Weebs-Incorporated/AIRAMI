@@ -1,98 +1,190 @@
-import axios, { AxiosRequestConfig, AxiosHeaders, AxiosResponse } from 'axios';
-import { RateLimitedResponse, ServerResponse } from '../types/CommonResponses';
-
-export interface BaseRequestProps<RateLimitApplicable extends boolean = false> {
-    baseUrl: string;
-    controller?: AbortController;
-    rateLimitBypassToken?: RateLimitApplicable extends true ? string : never;
-}
-
-function attachController(conf: AxiosRequestConfig, controller?: AbortController): void {
-    if (controller !== undefined) {
-        conf.signal = controller.signal;
-    }
-}
-
-function attachRateLimitBypassToken(headers: AxiosHeaders, token: string | undefined): void {
-    headers.set('RateLimit-Bypass-Token', token || undefined);
-}
-
-function handleRateLimited(res: AxiosResponse): RateLimitedResponse {
-    return {
-        _code: 429,
-        after: Number(res.headers['retry-after']),
-        limit: Number(res.headers['ratelimit-limit']),
-        remaining: Number(res.headers['ratelimit-remaining']),
-        reset: Number(res.headers['ratelimit-reset']),
-    };
-}
+import axios from 'axios';
+import { AIMS } from '../types';
+import { RootResponse, RateLimitedResponse, Root } from '../types/CommonResponses';
+import { BaseRequestProps } from '../types/RequestTypes';
+import { Responsify, ServerResponse } from '../types/ResponseTypes';
+import { makeRequestConfig, unknownFailResponse, handleRateLimited, genericFailResponse } from './helpers';
 
 export async function getRoot(
-    props: BaseRequestProps<true>,
-): Promise<
-    ServerResponse<
-        { startTime: string; version: string; receivedRequest: string },
-        RateLimitedResponse | { _code: number; statusText: string }
-    >
-> {
-    const { baseUrl, controller, rateLimitBypassToken } = props;
-
-    const headers = new AxiosHeaders();
-    attachRateLimitBypassToken(headers, rateLimitBypassToken);
-
-    const conf: AxiosRequestConfig = { url: baseUrl, method: 'GET', headers };
-    attachController(conf, controller);
+    props: BaseRequestProps<true, false>,
+): Promise<ServerResponse<RootResponse, RateLimitedResponse>> {
+    const config = makeRequestConfig(props, 'GET');
 
     try {
-        const { data } = await axios.request<{
-            startTime: string;
-            version: string;
-            receivedRequest: string;
-        }>(conf);
-        return { success: true, data };
+        const { data } = await axios.request<Root>(config);
+        return { success: true, status: 200, data };
     } catch (error) {
-        if (!axios.isAxiosError(error) || error.response === undefined) throw error;
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
 
-        if (error.response.status === 429)
-            return {
-                success: false,
-                data: handleRateLimited(error.response),
-            };
-        return {
-            success: false,
-            data: { _code: error.response.status, statusText: error.response.statusText },
-        };
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        return genericFailResponse(error.response);
     }
 }
 
 export async function checkRateLimitResponse(
-    props: BaseRequestProps<true> & { rateLimitBypassToken: string },
-): Promise<ServerResponse<null, { _code: 200; message: 'Error' } | { _code: 200; message: 'Invalid Token' }>> {
-    const { baseUrl, controller, rateLimitBypassToken } = props;
-
-    const headers = new AxiosHeaders();
-    attachRateLimitBypassToken(headers, rateLimitBypassToken);
-
-    const conf: AxiosRequestConfig = { url: baseUrl, method: 'GET', headers };
-    attachController(conf, controller);
+    props: BaseRequestProps<true, false> & { rateLimitBypassToken: string },
+): Promise<ServerResponse<Responsify<void, 200>, Responsify<'Error' | 'Invalid Token', 200>>> {
+    const config = makeRequestConfig(props, 'GET');
 
     try {
-        const { headers } = await axios.request(conf);
+        const { headers } = await axios.request(config);
         if (headers['ratelimit-bypass-response'] === 'Valid') {
-            return { success: true, data: null };
+            return { success: true, status: 200, data: undefined };
         }
-        return { success: false, data: { _code: 200, message: 'Invalid Token' } };
+        return { success: false, generic: false, status: 200, data: 'Invalid Token' };
     } catch (error) {
-        if (!axios.isAxiosError(error) || error.response === undefined) throw error;
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
 
-        if (error.response.status === 429)
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return { success: false, generic: false, status: 200, data: 'Invalid Token' };
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function requestLogin(
+    props: BaseRequestProps<true, false>,
+    authorizationCode: string,
+    redirectUri: string,
+): Promise<
+    ServerResponse<
+        Responsify<AIMS.LoginResponse, 200>,
+        Responsify<string, 400 | 500> | RateLimitedResponse | Responsify<void, 501>
+    >
+> {
+    const config = makeRequestConfig(props, 'POST', '/login');
+
+    config.data = {
+        code: authorizationCode,
+        redirect_uri: redirectUri,
+    };
+
+    try {
+        const { data } = await axios.request<AIMS.LoginResponse>(config);
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 400 || error.response.status === 500) {
             return {
                 success: false,
-                data: { _code: 200, message: 'Invalid Token' },
+                generic: false,
+                status: error.response.status,
+                data: error.response.statusText,
             };
-        return {
-            success: false,
-            data: { _code: 200, message: 'Error' },
-        };
+        }
+
+        if (error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: 501,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function requestRefresh(
+    props: BaseRequestProps<true, true>,
+): Promise<
+    ServerResponse<
+        Responsify<AIMS.LoginResponse, 200>,
+        Responsify<void, 400 | 404 | 501> | Responsify<string, 401 | 500> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig(props, 'GET', '/refresh');
+
+    try {
+        const { data } = await axios.request<AIMS.LoginResponse>(config);
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 400 || error.response.status === 404) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: 401,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 500) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.statusText,
+            };
+        }
+
+        if (error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: 501,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function requestLogout(
+    props: BaseRequestProps<true, true>,
+): Promise<
+    ServerResponse<Responsify<void, 200>, Responsify<void, 400> | Responsify<string, 401> | RateLimitedResponse>
+> {
+    const config = makeRequestConfig(props, 'GET', '/logout');
+
+    try {
+        await axios.request<void>(config);
+        return { success: true, status: 200, data: undefined };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 400) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: 401,
+                data: error.response.data['message'],
+            };
+        }
+
+        return genericFailResponse(error.response);
     }
 }

@@ -1,10 +1,6 @@
-export interface BaseResponseInfo {
-    _code: number;
-}
+import { Responsify } from './ResponseTypes';
 
-export interface RateLimitedResponse extends BaseResponseInfo {
-    _code: 429;
-
+export interface RateLimited {
     /** Maximum number of requests per time window. */
     limit: number;
 
@@ -18,6 +14,12 @@ export interface RateLimitedResponse extends BaseResponseInfo {
     after: number;
 }
 
-export type ServerResponse<TSuccess, TFail extends BaseResponseInfo> =
-    | { success: true; data: TSuccess }
-    | { success: false; data: TFail };
+export type RateLimitedResponse = Responsify<RateLimited, 429>;
+
+export interface Root {
+    startTime: string;
+    version: string;
+    receivedRequest: string;
+}
+
+export type RootResponse = Responsify<Root, 200>;
