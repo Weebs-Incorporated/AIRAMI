@@ -1,8 +1,5 @@
 import { aims } from '../../api';
 import { AIMS } from '../../types';
-import { RateLimited, RateLimitedResponse } from '../../types/CommonResponses';
-import { BaseRequestProps } from '../../types/RequestTypes';
-import { GenericFailResponse, Responsify, ServerResponse } from '../../types/ResponseTypes';
 
 export type UserSession =
     | (AIMS.LoginResponse & {
