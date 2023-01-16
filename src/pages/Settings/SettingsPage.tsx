@@ -7,7 +7,6 @@ import { aims } from '../../api';
 import { InternalLink } from '../../components/Links';
 import { defaultSettings, Settings, SettingsContext } from '../../contexts';
 import SettingsItem, { SettingsItemTest, SettingsItemTestState } from './SettingsItem';
-import { RateLimitedResponse } from '../../types/CommonResponses';
 import SettingsCog from './SettingsCog';
 
 type ChangeCallback<T extends keyof Settings> = (key: T) => (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -72,40 +71,31 @@ export const SettingsPage = () => {
         const controller = new AbortController();
 
         aims.getRoot({
-            baseUrl: settings.serverUrl,
+            baseURL: settings.serverUrl,
             controller,
             rateLimitBypassToken: settings.rateLimitBypassToken,
+            siteToken: undefined,
         })
             .then((res) => {
                 if (res.success) {
                     setTestApiUrlState('success');
-                } else if (res.data._code === 429) {
-                    const response = res.data as RateLimitedResponse;
+                } else if (res.generic) {
                     setTestApiUrlTitles({
                         ...testApiUrlTitles,
-                        fail: `Rate Limited, try again in ${response.reset} seconds`,
+                        fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
                     });
                     setTestApiUrlState('fail');
-                } else {
-                    const response = res.data as { _code: number; statusText: string };
+                } else if (res.status === 429) {
                     setTestApiUrlTitles({
                         ...testApiUrlTitles,
-                        fail: `Error ${response._code}${response.statusText !== '' ? `: ${response.statusText}` : ''}`,
+                        fail: `Rate limited, try again in ${res.data.reset} seconds`,
                     });
                     setTestApiUrlState('fail');
                 }
             })
-            .catch((err) => {
-                if (err instanceof Error && err.name === 'CanceledError') {
-                    setTestApiUrlState('available');
-                } else {
-                    setTestApiUrlTitles({
-                        ...testApiUrlTitles,
-                        fail: err instanceof Error ? err.message : 'Unknown error occurred (see console)',
-                    });
-                    setTestApiUrlState('fail');
-                    console.error(err);
-                }
+            .catch(() => {
+                // only errors when aborted
+                setTestApiUrlState('available');
             });
 
         return () => {
@@ -119,32 +109,31 @@ export const SettingsPage = () => {
         const controller = new AbortController();
 
         aims.checkRateLimitResponse({
-            baseUrl: settings.serverUrl,
+            baseURL: settings.serverUrl,
             controller,
             rateLimitBypassToken: settings.rateLimitBypassToken,
+            siteToken: undefined,
         })
             .then((res) => {
                 if (res.success) {
                     setTestRateLimitState('success');
+                } else if (res.generic) {
+                    setTestRateLimitTitles({
+                        ...testRateLimitTitles,
+                        fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
+                    });
+                    setTestRateLimitState('fail');
                 } else {
                     setTestRateLimitTitles({
                         ...testRateLimitTitles,
-                        fail: res.data.message,
+                        fail: res.data,
                     });
                     setTestRateLimitState('fail');
                 }
             })
-            .catch((err) => {
-                if (err instanceof Error && err.name === 'CanceledError') {
-                    setTestRateLimitState('available');
-                } else {
-                    setTestRateLimitTitles({
-                        ...testRateLimitTitles,
-                        fail: err instanceof Error ? err.message : 'Unknown error occurred (see console)',
-                    });
-                    setTestRateLimitState('fail');
-                    console.error(err);
-                }
+            .catch(() => {
+                // only errors when aborted
+                setTestRateLimitState('available');
             });
 
         return () => {
@@ -178,12 +167,11 @@ export const SettingsPage = () => {
 
     useEffect(() => {
         setTestApiUrlState('available');
-        setTestRateLimitState('available');
     }, [settings.serverUrl]);
 
     useEffect(() => {
         setTestRateLimitState('available');
-    }, [settings.rateLimitBypassToken]);
+    }, [settings.serverUrl, settings.rateLimitBypassToken]);
 
     const [hideRateLimitToken, setHideRateLimitToken] = useState(true);
 
