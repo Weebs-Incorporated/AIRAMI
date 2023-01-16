@@ -6,7 +6,7 @@ export interface ExternalLinkProps {
     children: ReactNode;
 }
 
-export const ExternalLink = (props: ExternalLinkProps) => {
+const ExternalLink = (props: ExternalLinkProps) => {
     const { href, target, children } = props;
 
     return (
@@ -20,3 +20,5 @@ export const ExternalLink = (props: ExternalLinkProps) => {
         </a>
     );
 };
+
+export default ExternalLink;
