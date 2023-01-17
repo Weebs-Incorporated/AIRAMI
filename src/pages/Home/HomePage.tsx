@@ -1,7 +1,7 @@
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { useContext } from 'react';
-import { LoginButton } from '../../components/Buttons';
+import { LoginButton, ProfileButton } from '../../components/Buttons';
 import { InternalLink } from '../../components/Links';
 import { UserSessionContext } from '../../contexts';
 
@@ -19,13 +19,7 @@ export const HomePage = () => {
                     Settings
                 </Button>
             </InternalLink>
-            {user === null ? (
-                <LoginButton />
-            ) : (
-                <Typography color="gray" sx={{ mt: 1 }}>
-                    Logged in as {user.userData.username}#{user.userData.discriminator}
-                </Typography>
-            )}
+            {user === null ? <LoginButton /> : <ProfileButton user={user.userData} />}
         </>
     );
 };
