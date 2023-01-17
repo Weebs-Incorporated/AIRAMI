@@ -66,25 +66,25 @@ const LoginPage = () => {
         const controller = new AbortController();
 
         userControllers.requestLogin(code, controller).then((res) => {
-            if (res.success) {
+            if (res === 'canceled') {
+                setError('Login Cancelled');
+                setAuthStage(AuthStage.Errored);
+            } else if (res.success) {
                 // successfully logged in
                 setAuthStage(AuthStage.Exiting);
                 window.open('/', '_self');
             } else if (res.generic) {
-                setAuthStage(AuthStage.Errored);
                 setError(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
+                setAuthStage(AuthStage.Errored);
             } else if (res.status === 429) {
-                setAuthStage(AuthStage.Errored);
-
                 setError(`Rate limited, try again in ${res.data.reset} seconds`);
+                setAuthStage(AuthStage.Errored);
             } else if (res.status === 501) {
-                setAuthStage(AuthStage.Errored);
-
                 setError('Logging in has been disabled');
-            } else {
                 setAuthStage(AuthStage.Errored);
-
+            } else {
                 setError(`Error ${res.status}: ${res.data}`);
+                setAuthStage(AuthStage.Errored);
             }
         });
 
