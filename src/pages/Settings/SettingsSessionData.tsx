@@ -24,6 +24,7 @@ const SettingsSessionData = () => {
         () => ({
             loggedIn: user === null ? '' : `Discord ID: ${user.userData._id}`,
             since: user === null ? '' : new Date(user.setAt).toUTCString(),
+            first: user === null ? '' : new Date(user.firstSetAt).toUTCString(),
             expires: user === null ? '' : new Date(expiryTimestamp).toUTCString(),
         }),
         [expiryTimestamp, user],
@@ -34,9 +35,13 @@ const SettingsSessionData = () => {
             loggedIn: user === null ? '' : `Logged in as: ${user.userData.username}#${user.userData.discriminator}`,
             since:
                 user === null
-                    ? 'n/a'
+                    ? ''
                     : `${new Date(user.setAt).toLocaleDateString('en-NZ')} (${dayjs(user.setAt).fromNow()})`,
-            expires: user === null ? 'n/a' : dayjs(expiryTimestamp).fromNow(),
+            first:
+                user === null
+                    ? ''
+                    : `${new Date(user.firstSetAt).toLocaleDateString('en-NZ')} (${dayjs(user.firstSetAt).fromNow()})`,
+            expires: user === null ? '' : dayjs(expiryTimestamp).fromNow(),
         }),
         [expiryTimestamp, user],
     );
@@ -130,7 +135,8 @@ const SettingsSessionData = () => {
                 ) : (
                     <>
                         <Typography title={titles.loggedIn}>{content.loggedIn}</Typography>
-                        <Typography title={titles.since}>Since: {content.since}</Typography>
+                        <Typography title={titles.since}>Last Updated: {content.since}</Typography>
+                        <Typography title={titles.first}>Since: {content.first}</Typography>
                         <Typography title={titles.expires}>Expires {content.expires}</Typography>
                     </>
                 )}

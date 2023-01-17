@@ -3,6 +3,7 @@ import { AIMS } from '../../types';
 
 export interface UserSession extends AIMS.LoginResponse {
     setAt: string;
+    firstSetAt: string;
 }
 
 export interface UserSessionControllers {

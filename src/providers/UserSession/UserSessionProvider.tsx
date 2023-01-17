@@ -29,7 +29,8 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
             const res = await aims.requestLogin(props, authorizationCode, settings.redirectUri);
 
             if (res !== 'canceled' && res.success) {
-                setUser({ ...res.data, setAt: new Date().toISOString() });
+                const now = new Date().toISOString();
+                setUser({ ...res.data, setAt: now, firstSetAt: now });
             }
 
             return res;
@@ -50,7 +51,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
 
             if (res !== 'canceled') {
                 if (res.success) {
-                    setUser({ ...res.data, setAt: new Date().toISOString() });
+                    setUser({ ...res.data, setAt: new Date().toISOString(), firstSetAt: existingSession.firstSetAt });
                 } else {
                     setUser(null);
                 }
