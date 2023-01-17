@@ -112,12 +112,14 @@ const NonMemoizedSettingsItem = (props: SettingsItemProps) => {
             <Typography variant="body2" color="gray" sx={{ ml: 1 }}>
                 {title}
             </Typography>
-            {test !== undefined && (
+            {test !== undefined ? (
                 <Fade in={test.state !== 'available'}>
                     <Typography variant="body2" color="gray" sx={{ ml: 1 }}>
                         {test.title[test.state]}
                     </Typography>
                 </Fade>
+            ) : (
+                <br />
             )}
         </Grid>
     );
