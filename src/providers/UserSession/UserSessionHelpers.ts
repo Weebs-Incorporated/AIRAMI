@@ -10,6 +10,10 @@ export function getLocalUserSession(): UserSession | null {
     return JSON.parse(existing);
 }
 
-export function saveLocalUserSession(u: UserSession): void {
-    localStorage.setItem(KEY_USER_SESSION, JSON.stringify(u));
+export function saveLocalUserSession(u: UserSession | null): void {
+    if (u === null) {
+        localStorage.removeItem(KEY_USER_SESSION);
+    } else {
+        localStorage.setItem(KEY_USER_SESSION, JSON.stringify(u));
+    }
 }

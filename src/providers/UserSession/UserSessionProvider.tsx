@@ -11,7 +11,7 @@ import { BaseRequestProps } from '../../types/RequestTypes';
 import { getLocalUserSession, saveLocalUserSession } from './UserSessionHelpers';
 
 const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<UserSession>(getLocalUserSession);
+    const [user, setUser] = useState<UserSession | null>(getLocalUserSession);
 
     const { settings } = useContext(SettingsContext);
 

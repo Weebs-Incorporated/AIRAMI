@@ -1,11 +1,9 @@
 import { aims } from '../../api';
 import { AIMS } from '../../types';
 
-export type UserSession =
-    | (AIMS.LoginResponse & {
-          setAt: string;
-      })
-    | null;
+export interface UserSession extends AIMS.LoginResponse {
+    setAt: string;
+}
 
 export interface UserSessionControllers {
     /** Requests the server upgrade an authorization code to an access token. */
@@ -25,6 +23,6 @@ export interface UserSessionControllers {
 }
 
 export interface IUserSessionContext {
-    user: UserSession;
+    user: UserSession | null;
     controllers: UserSessionControllers;
 }
