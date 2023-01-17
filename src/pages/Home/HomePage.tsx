@@ -1,5 +1,6 @@
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useContext } from 'react';
 import { LoginButton, ProfileButton } from '../../components/Buttons';
 import { GithubLink, InternalLink } from '../../components/Links';
@@ -15,7 +16,7 @@ export const HomePage = () => {
                 Anime Image Retrieval And Modification Interface
             </Typography>
             <InternalLink to="/settings">
-                <Button variant="outlined" color="secondary" sx={{ mt: 3 }} size="large">
+                <Button variant="outlined" color="secondary" sx={{ mt: 3 }} size="large" startIcon={<SettingsIcon />}>
                     Settings
                 </Button>
             </InternalLink>
