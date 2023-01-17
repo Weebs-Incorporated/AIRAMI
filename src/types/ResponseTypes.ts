@@ -19,7 +19,8 @@ export interface GenericFailResponse extends BaseResponse {
 export type ServerResponse<TSuccess extends SuccessResponse, TFail extends SpecificFailResponse> =
     | ({ success: true } & TSuccess)
     | ({ success: false; generic: false } & TFail)
-    | GenericFailResponse;
+    | GenericFailResponse
+    | 'canceled';
 
 export interface Responsify<TData, TStatus extends number> {
     status: TStatus;

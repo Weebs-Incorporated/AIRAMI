@@ -1,4 +1,4 @@
-import { AxiosRequestConfig, AxiosHeaders, AxiosResponse } from 'axios';
+import { AxiosRequestConfig, AxiosHeaders, AxiosResponse, CanceledError } from 'axios';
 import { RateLimited } from '../types/CommonResponses';
 import { BaseRequestProps } from '../types/RequestTypes';
 import { GenericFailResponse, Responsify } from '../types/ResponseTypes';
@@ -55,7 +55,8 @@ export function genericFailResponse(res: AxiosResponse): GenericFailResponse {
     };
 }
 
-export function unknownFailResponse(res: unknown): GenericFailResponse {
+export function unknownFailResponse(res: unknown): GenericFailResponse | 'canceled' {
+    if (res instanceof CanceledError) return 'canceled';
     console.error(res);
     return {
         success: false,
