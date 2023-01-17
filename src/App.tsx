@@ -11,6 +11,7 @@ import theme from './theme';
 import ContextProviders from './providers';
 import { HomePage, NotFoundPage, SettingsPage } from './pages';
 import LoginPage from './pages/Login/LoginPage';
+import ProfilePage from './pages/Profile/ProfilePage';
 
 function App() {
     return (
@@ -22,6 +23,7 @@ function App() {
                         <Route index element={<HomePage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="login" element={<LoginPage />} />
+                        <Route path="me" element={<ProfilePage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </ContextProviders>
