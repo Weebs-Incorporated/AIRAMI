@@ -1,0 +1,159 @@
+import React, { useCallback, useContext, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import Container from '@mui/material/Container';
+import Collapse from '@mui/material/Collapse';
+import { UserSessionContext } from '../../contexts';
+import { LoginButton } from '../../components/Buttons';
+
+dayjs.extend(relativeTime);
+
+const SettingsSessionData = () => {
+    const { user, controllers } = useContext(UserSessionContext);
+
+    const expiryTimestamp = useMemo<number>(
+        () => (user === null ? 0 : new Date(user.setAt).getTime() + 1000 * user.expiresInSeconds),
+        [user],
+    );
+
+    const titles = useMemo(
+        () => ({
+            loggedIn: user === null ? '' : `Discord ID: ${user.userData._id}`,
+            since: user === null ? '' : new Date(user.setAt).toUTCString(),
+            expires: user === null ? '' : new Date(expiryTimestamp).toUTCString(),
+        }),
+        [expiryTimestamp, user],
+    );
+
+    const content = useMemo(
+        () => ({
+            loggedIn: user === null ? '' : `Logged in as: ${user.userData.username}#${user.userData.discriminator}`,
+            since:
+                user === null
+                    ? 'n/a'
+                    : `${new Date(user.setAt).toLocaleDateString('en-NZ')} (${dayjs(user.setAt).fromNow()})`,
+            expires: user === null ? 'n/a' : dayjs(expiryTimestamp).fromNow(),
+        }),
+        [expiryTimestamp, user],
+    );
+
+    const [lastOutput, setLastOutput] = useState('');
+
+    const handleLogout = useCallback(
+        (e: React.MouseEvent<HTMLButtonElement>) => {
+            e.preventDefault();
+            if (user === null) return;
+
+            controllers.requestLogout(user).then((res) => {
+                if (res === 'canceled') {
+                    setLastOutput('Logout cancelled');
+                    return;
+                }
+
+                if (res.success || (!res.generic && res.status === 400)) {
+                    setLastOutput('Logout successful');
+                    return;
+                }
+
+                if (res.generic) {
+                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? ` ${res.statusText}` : ''}`);
+                    return;
+                }
+
+                if (res.status === 401) {
+                    setLastOutput(`Error 401: ${res.data}`);
+                    return;
+                }
+
+                setLastOutput(`Rate limited, try again in ${res.data.reset} seconds`);
+            });
+        },
+        [controllers, user],
+    );
+
+    const handleRefresh = useCallback(
+        (e: React.MouseEvent<HTMLButtonElement>) => {
+            e.preventDefault();
+            if (user === null) return;
+
+            controllers.requestRefresh(user).then((res) => {
+                if (res === 'canceled') {
+                    setLastOutput('Refresh cancelled');
+                    return;
+                }
+
+                if (res.success) {
+                    setLastOutput('Refresh successful');
+                    return;
+                }
+
+                if (res.generic) {
+                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? ` ${res.statusText}` : ''}`);
+                    return;
+                }
+
+                if (res.status === 400 || res.status === 404) {
+                    setLastOutput('Refresh failed');
+                    return;
+                }
+
+                if (res.status === 401 || res.status === 500) {
+                    setLastOutput(`Error 401: ${res.data}`);
+                    return;
+                }
+
+                if (res.status === 429) {
+                    setLastOutput(`Rate limited, try again in ${res.data.reset} seconds`);
+                    return;
+                }
+
+                setLastOutput('Refreshing has been disabled');
+            });
+        },
+        [controllers, user],
+    );
+
+    return (
+        <Container sx={{ mt: 3 }} maxWidth="sm">
+            <Card sx={{ p: 1, width: '100%', display: 'flex', flexDirection: 'column' }} elevation={10}>
+                <Typography variant="h4" textAlign="center">
+                    Session Data
+                </Typography>
+                {user === null ? (
+                    <Typography textAlign="center" color="gray">
+                        Not logged in
+                    </Typography>
+                ) : (
+                    <>
+                        <Typography title={titles.loggedIn}>{content.loggedIn}</Typography>
+                        <Typography title={titles.since}>Since: {content.since}</Typography>
+                        <Typography title={titles.expires}>Expires {content.expires}</Typography>
+                    </>
+                )}
+                {user === null ? (
+                    <Stack direction="row" spacing={2} sx={{ mt: 1 }} justifyContent="center">
+                        <LoginButton />
+                    </Stack>
+                ) : (
+                    <Stack direction="row" spacing={2} sx={{ mt: 1 }} justifyContent="flex-end">
+                        <Button variant="outlined" color="info" onClick={handleRefresh}>
+                            Refresh
+                        </Button>
+                        <Button variant="outlined" color="warning" onClick={handleLogout}>
+                            Logout
+                        </Button>
+                    </Stack>
+                )}
+                <Collapse in={lastOutput !== ''}>
+                    <Typography color="gray">{lastOutput}</Typography>
+                </Collapse>
+            </Card>
+        </Container>
+    );
+};
+
+export default SettingsSessionData;

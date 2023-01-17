@@ -8,6 +8,7 @@ import { InternalLink } from '../../components/Links';
 import { defaultSettings, Settings, SettingsContext } from '../../contexts';
 import SettingsItem, { SettingsItemTest, SettingsItemTestState } from './SettingsItem';
 import SettingsCog from './SettingsCog';
+import SettingsSessionData from './SettingsSessionData';
 
 type ChangeCallback<T extends keyof Settings> = (key: T) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 
@@ -75,28 +76,25 @@ export const SettingsPage = () => {
             controller,
             rateLimitBypassToken: settings.rateLimitBypassToken,
             siteToken: undefined,
-        })
-            .then((res) => {
-                if (res.success) {
-                    setTestApiUrlState('success');
-                } else if (res.generic) {
-                    setTestApiUrlTitles({
-                        ...testApiUrlTitles,
-                        fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
-                    });
-                    setTestApiUrlState('fail');
-                } else if (res.status === 429) {
-                    setTestApiUrlTitles({
-                        ...testApiUrlTitles,
-                        fail: `Rate limited, try again in ${res.data.reset} seconds`,
-                    });
-                    setTestApiUrlState('fail');
-                }
-            })
-            .catch(() => {
-                // only errors when aborted
+        }).then((res) => {
+            if (res === 'canceled') {
                 setTestApiUrlState('available');
-            });
+            } else if (res.success) {
+                setTestApiUrlState('success');
+            } else if (res.generic) {
+                setTestApiUrlTitles({
+                    ...testApiUrlTitles,
+                    fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
+                });
+                setTestApiUrlState('fail');
+            } else if (res.status === 429) {
+                setTestApiUrlTitles({
+                    ...testApiUrlTitles,
+                    fail: `Rate limited, try again in ${res.data.reset} seconds`,
+                });
+                setTestApiUrlState('fail');
+            }
+        });
 
         return () => {
             controller.abort();
@@ -113,28 +111,25 @@ export const SettingsPage = () => {
             controller,
             rateLimitBypassToken: settings.rateLimitBypassToken,
             siteToken: undefined,
-        })
-            .then((res) => {
-                if (res.success) {
-                    setTestRateLimitState('success');
-                } else if (res.generic) {
-                    setTestRateLimitTitles({
-                        ...testRateLimitTitles,
-                        fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
-                    });
-                    setTestRateLimitState('fail');
-                } else {
-                    setTestRateLimitTitles({
-                        ...testRateLimitTitles,
-                        fail: res.data,
-                    });
-                    setTestRateLimitState('fail');
-                }
-            })
-            .catch(() => {
-                // only errors when aborted
+        }).then((res) => {
+            if (res === 'canceled') {
                 setTestRateLimitState('available');
-            });
+            } else if (res.success) {
+                setTestRateLimitState('success');
+            } else if (res.generic) {
+                setTestRateLimitTitles({
+                    ...testRateLimitTitles,
+                    fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
+                });
+                setTestRateLimitState('fail');
+            } else {
+                setTestRateLimitTitles({
+                    ...testRateLimitTitles,
+                    fail: res.data,
+                });
+                setTestRateLimitState('fail');
+            }
+        });
 
         return () => {
             controller.abort();
@@ -178,12 +173,19 @@ export const SettingsPage = () => {
     return (
         <Container
             maxWidth="lg"
-            sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pb: 5,
+                pt: 1,
+            }}
         >
             <Typography variant="h2">
                 Settings <SettingsCog />
             </Typography>
-            <Grid container spacing={4} alignItems="center" sx={{ p: 5 }}>
+            <Grid container spacing={4} alignItems="center" sx={{ mt: 2 }}>
                 <SettingsItem
                     title="Endpoint for the AIMS API."
                     label="API URL"
@@ -249,6 +251,7 @@ export const SettingsPage = () => {
                     inputMode="numeric"
                 />
             </Grid>
+            <SettingsSessionData />
             <InternalLink to="/">
                 <Button variant="outlined" color="secondary" sx={{ mt: 3 }} size="large">
                     Home
