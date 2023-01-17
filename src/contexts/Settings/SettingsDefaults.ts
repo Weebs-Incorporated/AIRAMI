@@ -6,7 +6,7 @@ export const defaultSettings: Settings = {
     discordApplicationId: '1050340681463369738',
     redirectUri: `${window.location.origin}/login`,
     minRefreshSeconds: 30,
-    maxRefreshMinutes: 30,
+    maxRefreshMinutes: 3 * 24 * 60,
 };
 
 export const defaultSettingsControllers: SettingsControllers = {

@@ -30,7 +30,7 @@ export interface Settings {
     minRefreshSeconds: number;
     /**
      * Will try to refresh site token if it expires in this many minutes or less.
-     * @default 30
+     * @default 3 * 24 * 60 // (3 days)
      */
     maxRefreshMinutes: number;
 }
