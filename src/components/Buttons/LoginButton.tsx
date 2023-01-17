@@ -8,7 +8,7 @@ const LoginButton = (props?: ButtonProps) => {
 
     return (
         <ExternalLink href={sessionData.oAuthLink} target="_self">
-            <Button {...props} variant="outlined">
+            <Button variant="outlined" {...props}>
                 Login
             </Button>
         </ExternalLink>
