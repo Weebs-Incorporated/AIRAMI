@@ -19,7 +19,11 @@ export function makeRequestConfig(
 
     if (siteToken !== undefined) headers.set('Authorization', `Bearer ${siteToken}`);
 
-    const conf: AxiosRequestConfig = { baseURL, headers, method };
+    const conf: AxiosRequestConfig = {
+        baseURL,
+        headers: headers as Exclude<AxiosRequestConfig['headers'], undefined>,
+        method,
+    };
 
     if (url !== undefined) conf.url = url;
 
