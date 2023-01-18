@@ -1,13 +1,13 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { Typography, Grid, Button } from '@mui/material';
+import { Typography, Grid } from '@mui/material';
 import { aims } from '../../api';
-import { InternalLink } from '../../components/Links';
 import { defaultSettings, Settings, SettingsContext } from '../../contexts';
 import SettingsItem, { SettingsItemTest, SettingsItemTestState } from './SettingsItem';
 import SettingsCog from './SettingsCog';
 import SettingsSessionData from './SettingsSessionData';
 import Footer from '../../components/Footer';
 import { Page } from '../Page.styled';
+import { HomeButton } from '../../components/Buttons';
 
 type ChangeCallback<T extends keyof Settings> = (key: T) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 
@@ -241,11 +241,7 @@ const SettingsPage = () => {
                 />
             </Grid>
             <SettingsSessionData />
-            <InternalLink to="/">
-                <Button variant="outlined" color="secondary" sx={{ mt: 3 }} size="large">
-                    Home
-                </Button>
-            </InternalLink>
+            <HomeButton sx={{ mt: 3 }} />
             <Footer />
         </Page>
     );

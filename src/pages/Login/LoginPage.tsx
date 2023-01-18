@@ -1,13 +1,10 @@
 import { useContext, useEffect, useState } from 'react';
-import { Button, Fade, LinearProgress, Stack, Typography } from '@mui/material';
+import { Fade, LinearProgress, Stack, Typography } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
-import { LoginButton } from '../../components/Buttons';
+import { HomeButton, LoginButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
-import { InternalLink } from '../../components/Links';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import { LoginPageContainer } from './LoginPage.styled';
-
-import HomeIcon from '@mui/icons-material/Home';
 
 enum AuthStage {
     /** Requesting an access token from AIMS. */
@@ -117,12 +114,7 @@ const LoginPage = () => {
                         You can try to login again, but make sure it's safe to do so.
                     </Typography>
                     <Stack direction="row" alignItems="center" spacing={2}>
-                        <InternalLink to="/">
-                            <Button variant="outlined" color="secondary" size="large" startIcon={<HomeIcon />}>
-                                Home
-                            </Button>
-                        </InternalLink>
-                        <LoginButton size="large" />
+                        <HomeButton />
                     </Stack>
                 </LoginPageContainer>
             );
@@ -134,11 +126,7 @@ const LoginPage = () => {
                         {error}
                     </Typography>
                     <Stack direction="row" alignItems="center" spacing={2}>
-                        <InternalLink to="/">
-                            <Button variant="outlined" color="secondary" size="large" startIcon={<HomeIcon />}>
-                                Home
-                            </Button>
-                        </InternalLink>
+                        <HomeButton />
                         <LoginButton size="large" />
                     </Stack>
                 </LoginPageContainer>
