@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import SettingsIcon from '@mui/icons-material/Settings';
-import IconButton from '@mui/material/IconButton';
+import { IconButton } from '@mui/material';
 import './SettingsCog.css';
+
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const SettingsCog = () => {
     const [active, setActive] = useState(true);
@@ -32,10 +33,7 @@ const SettingsCog = () => {
 
     return (
         <IconButton disableRipple onClick={handleClick}>
-            <SettingsIcon
-                className={`settingsCog ${active ? 'active' : ''} ${numClicks > 10 ? 'hyper' : ''}`}
-                sx={{ fontSize: '50px' }}
-            />
+            <SettingsIcon className={`settingsCog ${active ? 'active' : ''} ${numClicks > 10 ? 'hyper' : ''}`} />
         </IconButton>
     );
 };

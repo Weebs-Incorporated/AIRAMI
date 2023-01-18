@@ -1,17 +1,13 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import CssBaseline from '@mui/material/CssBaseline';
-import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import theme from './theme';
+import ContextProviders from './providers';
+import { HomePage, NotFoundPage, SettingsPage, LoginPage, ProfilePage } from './pages';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-
-import theme from './theme';
-import ContextProviders from './providers';
-import { HomePage, NotFoundPage, SettingsPage } from './pages';
-import LoginPage from './pages/Login/LoginPage';
-import ProfilePage from './pages/Profile/ProfilePage';
 
 function App() {
     return (

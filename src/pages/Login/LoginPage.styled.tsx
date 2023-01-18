@@ -1,5 +1,4 @@
-import Container from '@mui/material/Container';
-import { styled } from '@mui/material/styles';
+import { Container, styled } from '@mui/material';
 
 export const LoginPageContainer = styled(Container)(({ theme }) => ({
     display: 'flex',

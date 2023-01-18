@@ -1,8 +1,5 @@
 import axios from 'axios';
-import { AIMS } from '../types';
-import { RootResponse, RateLimitedResponse, Root } from '../types/CommonResponses';
-import { BaseRequestProps } from '../types/RequestTypes';
-import { Responsify, ServerResponse } from '../types/ResponseTypes';
+import { AIMS, BaseRequestProps, RateLimitedResponse, Responsify, Root, RootResponse, ServerResponse } from '../types';
 import { makeRequestConfig, unknownFailResponse, handleRateLimited, genericFailResponse } from './helpers';
 
 export async function getRoot(

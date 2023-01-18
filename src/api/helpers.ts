@@ -1,7 +1,5 @@
 import { AxiosRequestConfig, AxiosHeaders, AxiosResponse, CanceledError } from 'axios';
-import { RateLimited } from '../types/CommonResponses';
-import { BaseRequestProps } from '../types/RequestTypes';
-import { GenericFailResponse, Responsify } from '../types/ResponseTypes';
+import { Responsify, BaseRequestProps, RateLimited, GenericFailResponse } from '../types';
 
 type FullResponsifyFail<TData, TStatus extends number> = Responsify<TData, TStatus> & {
     success: false;

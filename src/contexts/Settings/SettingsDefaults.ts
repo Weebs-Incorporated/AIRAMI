@@ -1,3 +1,4 @@
+import { notImplementedFunction } from '../defaultFillers';
 import { ISettingsContext, Settings, SettingsControllers, SettingsSessionData } from './SettingsTypes';
 
 export const defaultSettings: Settings = {
@@ -10,12 +11,8 @@ export const defaultSettings: Settings = {
 };
 
 export const defaultSettingsControllers: SettingsControllers = {
-    setValue: function <T extends keyof Settings>(key: T, value: Settings[T]): void {
-        throw new Error('Function not implemented.');
-    },
-    resetValue: function <T extends keyof Settings>(key: T): void {
-        throw new Error('Function not implemented.');
-    },
+    setValue: notImplementedFunction,
+    resetValue: notImplementedFunction,
 };
 
 export const defaultSettingsSessionData: SettingsSessionData = {

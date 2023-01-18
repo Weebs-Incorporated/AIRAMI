@@ -23,7 +23,7 @@ export interface UserSessionControllers {
     ): ReturnType<(typeof aims)['requestLogout']>;
 }
 
-export interface IUserSessionContext {
-    user: UserSession | null;
+export interface IUserSessionContext<TRequired extends boolean = false> {
+    user: TRequired extends true ? UserSession : UserSession | null;
     controllers: UserSessionControllers;
 }

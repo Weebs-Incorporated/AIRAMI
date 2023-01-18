@@ -1,5 +1,5 @@
-import { RateLimited } from '../../types/CommonResponses';
 import { General, GeneralControllers, IGeneralContext } from './GeneralTypes';
+import { notImplementedFunction } from '../defaultFillers';
 
 export const defaultGeneral: General = {
     rateLimited: false,
@@ -7,15 +7,9 @@ export const defaultGeneral: General = {
 };
 
 export const defaultGeneralControllers: GeneralControllers = {
-    setRateLimited: function (r: RateLimited): void {
-        throw new Error('Function not implemented.');
-    },
-    clearRateLimited: function (): void {
-        throw new Error('Function not implemented.');
-    },
-    setNotFound: function (newNotFoundState: boolean): void {
-        throw new Error('Function not implemented.');
-    },
+    setRateLimited: notImplementedFunction,
+    clearRateLimited: notImplementedFunction,
+    setNotFound: notImplementedFunction,
 };
 
 export const defaultGeneralContext: IGeneralContext = {

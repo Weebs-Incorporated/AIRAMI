@@ -1,14 +1,13 @@
-import Button from '@mui/material/Button';
-import Fade from '@mui/material/Fade';
-import LinearProgress from '@mui/material/LinearProgress';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import { useContext, useEffect, useState } from 'react';
+import { Button, Fade, LinearProgress, Stack, Typography } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import { LoginButton } from '../../components/Buttons';
+import Footer from '../../components/Footer';
 import { InternalLink } from '../../components/Links';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import { LoginPageContainer } from './LoginPage.styled';
+
+import HomeIcon from '@mui/icons-material/Home';
 
 enum AuthStage {
     /** Requesting an access token from AIMS. */
@@ -119,7 +118,7 @@ const LoginPage = () => {
                     </Typography>
                     <Stack direction="row" alignItems="center" spacing={2}>
                         <InternalLink to="/">
-                            <Button variant="outlined" color="secondary" size="large">
+                            <Button variant="outlined" color="secondary" size="large" startIcon={<HomeIcon />}>
                                 Home
                             </Button>
                         </InternalLink>
@@ -136,7 +135,7 @@ const LoginPage = () => {
                     </Typography>
                     <Stack direction="row" alignItems="center" spacing={2}>
                         <InternalLink to="/">
-                            <Button variant="outlined" color="secondary" size="large">
+                            <Button variant="outlined" color="secondary" size="large" startIcon={<HomeIcon />}>
                                 Home
                             </Button>
                         </InternalLink>
@@ -159,4 +158,12 @@ const LoginPage = () => {
     }
 };
 
-export default LoginPage;
+const LoginPageWrapper = () => (
+    <>
+        <div style={{ flexGrow: 1 }} />
+        <LoginPage />
+        <Footer />
+    </>
+);
+
+export default LoginPageWrapper;

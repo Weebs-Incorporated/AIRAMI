@@ -4,21 +4,20 @@ export interface ExternalLinkProps {
     href: string;
     target?: React.HTMLAttributeAnchorTarget;
     children: ReactNode;
+    style?: React.CSSProperties;
 }
 
-const ExternalLink = (props: ExternalLinkProps) => {
-    const { href, target, children } = props;
+export const ExternalLink = (props: ExternalLinkProps) => {
+    const { href, target, children, style } = props;
 
     return (
         <a
             href={href}
             rel="noopener noreferrer"
             target={target ?? '_blank'}
-            style={{ color: 'inherit', textDecoration: 'inherit' }}
+            style={{ color: 'inherit', textDecoration: 'inherit', ...style }}
         >
             {children}
         </a>
     );
 };
-
-export default ExternalLink;

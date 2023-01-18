@@ -1,12 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { Container, Card, Typography, Stack, Button, Collapse } from '@mui/material';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import Container from '@mui/material/Container';
-import Collapse from '@mui/material/Collapse';
 import { UserSessionContext } from '../../contexts';
 import { LoginButton } from '../../components/Buttons';
 

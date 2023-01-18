@@ -1,18 +1,17 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
+import { Typography, Grid, Button } from '@mui/material';
 import { aims } from '../../api';
 import { InternalLink } from '../../components/Links';
 import { defaultSettings, Settings, SettingsContext } from '../../contexts';
 import SettingsItem, { SettingsItemTest, SettingsItemTestState } from './SettingsItem';
 import SettingsCog from './SettingsCog';
 import SettingsSessionData from './SettingsSessionData';
+import Footer from '../../components/Footer';
+import { Page } from '../Page.styled';
 
 type ChangeCallback<T extends keyof Settings> = (key: T) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 
-export const SettingsPage = () => {
+const SettingsPage = () => {
     const { settings, controllers: settingsControllers } = useContext(SettingsContext);
 
     const handleTextChange = useCallback<
@@ -171,17 +170,7 @@ export const SettingsPage = () => {
     const [hideRateLimitToken, setHideRateLimitToken] = useState(true);
 
     return (
-        <Container
-            maxWidth="lg"
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pb: 5,
-                pt: 1,
-            }}
-        >
+        <Page maxWidth="lg">
             <Typography variant="h2">
                 Settings <SettingsCog />
             </Typography>
@@ -257,6 +246,9 @@ export const SettingsPage = () => {
                     Home
                 </Button>
             </InternalLink>
-        </Container>
+            <Footer />
+        </Page>
     );
 };
+
+export default SettingsPage;
