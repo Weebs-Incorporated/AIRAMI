@@ -21,6 +21,7 @@ export function makeRequestConfig(
 
     const conf: AxiosRequestConfig = {
         baseURL,
+        // cloudflare pages build dies without this assertion
         headers: headers as Exclude<AxiosRequestConfig['headers'], undefined>,
         method,
     };
