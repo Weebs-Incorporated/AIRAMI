@@ -2,8 +2,7 @@ import { useContext } from 'react';
 import Button, { ButtonProps } from '@mui/material/Button';
 import { SettingsContext } from '../../contexts';
 import { ExternalLink } from '../Links';
-
-import discordIcon from './discordIcon.svg';
+import { discordIcon } from '../../images';
 
 export const LoginButton = (props?: ButtonProps) => {
     const { sessionData } = useContext(SettingsContext);
