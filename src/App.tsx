@@ -19,7 +19,7 @@ function App() {
                         <Route index element={<HomePage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="login" element={<LoginPage />} />
-                        <Route path="me" element={<ProfilePage />} />
+                        <Route path="users/:id" element={<ProfilePage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </ContextProviders>

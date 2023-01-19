@@ -1,3 +1,3 @@
-import discordIcon from './discordIcon.svg';
+import { ReactComponent as DiscordIcon } from './discordIcon.svg';
 
-export { discordIcon };
+export { DiscordIcon };

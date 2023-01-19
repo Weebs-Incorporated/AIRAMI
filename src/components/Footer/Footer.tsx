@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Grid, Paper, PaperProps, Avatar } from '@mui/material';
+import { Grid, Paper, PaperProps } from '@mui/material';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import FooterItem from './FooterItem';
 
@@ -7,6 +7,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CodeIcon from '@mui/icons-material/Code';
+import ProfilePicture from '../ProfilePicture/ProfilePicture';
 
 const Footer = (props?: PaperProps) => {
     const { settings } = useContext(SettingsContext);
@@ -33,14 +34,8 @@ const Footer = (props?: PaperProps) => {
                     <FooterItem href="/" icon={<HomeIcon color="disabled" />} label="Home" type="internal" />
                     {user !== null && (
                         <FooterItem
-                            href="/me"
-                            icon={
-                                <Avatar
-                                    src={`https://cdn.discordapp.com/avatars/${user.userData._id}/${user.userData.avatar}.png`}
-                                    alt="Your Discord profile"
-                                    sx={{ width: '24px', height: '24px' }}
-                                />
-                            }
+                            href={`/users/${user.userData._id}`}
+                            icon={<ProfilePicture user={{ ...user.userData }} size={24} style={{ color: 'gray' }} />}
                             label="Profile"
                             type="internal"
                         />

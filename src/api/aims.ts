@@ -80,7 +80,7 @@ export async function requestLogin(
             return {
                 success: false,
                 generic: false,
-                status: 501,
+                status: error.response.status,
                 data: undefined,
             };
         }
@@ -121,7 +121,7 @@ export async function requestRefresh(
             return {
                 success: false,
                 generic: false,
-                status: 401,
+                status: error.response.status,
                 data: error.response.data['message'],
             };
         }
@@ -139,7 +139,7 @@ export async function requestRefresh(
             return {
                 success: false,
                 generic: false,
-                status: 501,
+                status: error.response.status,
                 data: undefined,
             };
         }
@@ -177,8 +177,50 @@ export async function requestLogout(
             return {
                 success: false,
                 generic: false,
-                status: 401,
+                status: error.response.status,
                 data: error.response.data['message'],
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function getUser(
+    props: BaseRequestProps<true, 'optional'>,
+    id: string,
+): Promise<
+    ServerResponse<
+        Responsify<AIMS.ClientFacingUser, 200>,
+        Responsify<string, 401> | Responsify<void, 404> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig(props, 'GET', `/users/${id}`);
+
+    try {
+        const { data } = await axios.request<AIMS.ClientFacingUser>(config);
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 404) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
             };
         }
 

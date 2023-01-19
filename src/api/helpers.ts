@@ -7,7 +7,7 @@ type FullResponsifyFail<TData, TStatus extends number> = Responsify<TData, TStat
 };
 
 export function makeRequestConfig(
-    props: BaseRequestProps<boolean, boolean>,
+    props: BaseRequestProps<boolean, boolean | 'optional'>,
     method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
     url?: string,
 ): AxiosRequestConfig {
