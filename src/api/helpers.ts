@@ -15,7 +15,9 @@ export function makeRequestConfig(
 
     const headers = new AxiosHeaders();
 
-    if (rateLimitBypassToken !== undefined) headers.set('RateLimit-Bypass-Token', rateLimitBypassToken);
+    if (rateLimitBypassToken !== undefined && rateLimitBypassToken !== '') {
+        headers.set('RateLimit-Bypass-Token', rateLimitBypassToken);
+    }
 
     if (siteToken !== undefined) headers.set('Authorization', `Bearer ${siteToken}`);
 
