@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { AIMS, BaseRequestProps, RateLimitedResponse, Responsify, Root, RootResponse, ServerResponse } from '../types';
 import { makeRequestConfig, unknownFailResponse, handleRateLimited, genericFailResponse } from './helpers';
 
@@ -11,7 +11,7 @@ export async function getRoot(
         const { data } = await axios.request<Root>(config);
         return { success: true, status: 200, data };
     } catch (error) {
-        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+        if (!isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
 
         const rateLimit = handleRateLimited(error.response);
         if (rateLimit) return rateLimit;

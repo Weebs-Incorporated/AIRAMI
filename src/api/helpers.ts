@@ -1,4 +1,4 @@
-import { AxiosRequestConfig, AxiosHeaders, AxiosResponse, CanceledError } from 'axios';
+import { isAxiosError, AxiosRequestConfig, AxiosHeaders, AxiosResponse, CanceledError } from 'axios';
 import { Responsify, BaseRequestProps, RateLimited, GenericFailResponse } from '../types';
 
 type FullResponsifyFail<TData, TStatus extends number> = Responsify<TData, TStatus> & {
@@ -60,6 +60,16 @@ export function genericFailResponse(res: AxiosResponse): GenericFailResponse {
 
 export function unknownFailResponse(res: unknown): GenericFailResponse | 'canceled' {
     if (res instanceof CanceledError) return 'canceled';
+
+    if (isAxiosError(res)) {
+        return {
+            success: false,
+            generic: true,
+            status: res.response?.status ?? res.status ?? 0,
+            statusText: res.response?.statusText || res.message,
+        };
+    }
+
     console.error(res);
     return {
         success: false,
