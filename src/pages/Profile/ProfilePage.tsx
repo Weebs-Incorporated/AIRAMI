@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
     Typography,
     Stack,
@@ -13,116 +13,255 @@ import {
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { HomeButton } from '../../components/Buttons';
-import { SettingsContext, UserSessionContext, UserSessionControllers } from '../../contexts';
+import { SettingsContext, UserSessionContext } from '../../contexts';
 import Footer from '../../components/Footer';
 import ProfilePicture from '../../components/ProfilePicture/ProfilePicture';
-import { hasPermission, permissionDescriptionsMap, permissionsToString } from '../../helpers';
+import { hasOneOfPermissions, hasPermission, permissionDescriptionsMap, permissionsToString } from '../../helpers';
 import { AIMS } from '../../types';
 import { useParams } from 'react-router-dom';
 import { aims } from '../../api';
 import { ExpandMore, UserBadges } from '../../components/Icons';
+import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import LogoutIcon from '@mui/icons-material/Logout';
+import GavelIcon from '@mui/icons-material/Gavel';
+import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
+import ImageIcon from '@mui/icons-material/Image';
+import CreateIcon from '@mui/icons-material/Create';
 
 dayjs.extend(relativeTime);
 
 export interface ProfilePageProps {
     user: AIMS.ClientFacingUser | AIMS.User;
-    controllers?: UserSessionControllers | undefined;
 }
 
 const ProfilePage = ({ user }: ProfilePageProps) => {
-    const { user: loggedInUser } = useContext(UserSessionContext);
+    const { user: loggedInUser, controllers } = useContext(UserSessionContext);
     const permissions = useMemo(() => permissionsToString(user.permissions), [user.permissions]);
 
-    const canViewIp = useMemo(
-        () =>
+    const isSelf = useMemo(() => loggedInUser?.userData._id === user._id, [loggedInUser?.userData._id, user._id]);
+
+    const canViewIp = useMemo(() => {
+        return loggedInUser !== null && (isSelf || hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner));
+    }, [isSelf, loggedInUser]);
+
+    const canModifyPermissions = useMemo(() => {
+        return (
             loggedInUser !== null &&
-            (loggedInUser.userData._id === user._id ||
-                hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner)),
-        [loggedInUser, user._id],
-    );
+            hasOneOfPermissions(
+                loggedInUser.userData,
+                AIMS.UserPermissions.Owner,
+                AIMS.UserPermissions.AssignPermissions,
+            )
+        );
+    }, [loggedInUser]);
+
+    const canMakeSubmission = useMemo(() => {
+        return (
+            loggedInUser?.userData._id === user._id &&
+            hasOneOfPermissions(
+                loggedInUser.userData,
+                AIMS.UserPermissions.AssignPermissions,
+                AIMS.UserPermissions.Owner,
+                AIMS.UserPermissions.Upload,
+            )
+        );
+    }, [loggedInUser, user._id]);
 
     const [isViewingPermissions, setIsViewingPermissions] = useState(false);
 
     const [isRevealingIp, setIsRevealingIp] = useState(false);
 
-    return (
-        <Container maxWidth="xs" sx={{ mt: 3 }}>
-            <Stack spacing={1}>
-                <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                    <ProfilePicture user={user} isSelf />
-                    <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {user.username}#{user.discriminator}
-                        <br />
-                        <span style={{ color: 'gray' }}>{user._id}</span>
-                    </Typography>
-                </Stack>
-                <UserBadges user={user} sx={{ pt: 1 }} />
-                <Typography title={new Date(user.registered).toUTCString()} textAlign="center">
-                    Registered {dayjs(user.registered).fromNow()}{' '}
-                    <span style={{ color: 'gray' }}>({new Date(user.registered).toLocaleDateString('en-NZ')})</span>
-                </Typography>
+    const [logoutResponse, setLogoutResponse] = useState('');
 
-                <Typography title={new Date(user.lastLoginOrRefresh).toUTCString()} textAlign="center">
-                    Last seen {dayjs(user.lastLoginOrRefresh).fromNow()}{' '}
-                    <span style={{ color: 'gray' }}>
-                        ({new Date(user.lastLoginOrRefresh).toLocaleDateString('en-NZ')})
-                    </span>
-                </Typography>
-                {canViewIp && (
-                    <Typography textAlign="center">
-                        IP:{' '}
-                        <span style={{ minWidth: '100px' }}>
-                            {isRevealingIp ? user.latestIp ?? 'Unknown' : 'Hidden'}
-                        </span>
-                        <Button
-                            variant="text"
-                            color="secondary"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setIsRevealingIp(!isRevealingIp);
-                            }}
-                        >
-                            {isRevealingIp ? 'Hide' : 'Reveal'}
-                        </Button>
+    const handleLogout = useCallback(
+        (e: React.MouseEvent<HTMLButtonElement>) => {
+            e.preventDefault();
+            if (loggedInUser === null) return;
+
+            controllers.requestLogout(loggedInUser).then((res) => {
+                if (res === 'canceled') {
+                    setLogoutResponse('Logout cancelled');
+                    return;
+                }
+
+                if (res.success || (!res.generic && res.status === 400)) {
+                    setLogoutResponse('Logout successful');
+                    return;
+                }
+
+                if (res.generic) {
+                    setLogoutResponse(`Error ${res.status}${res.statusText !== '' ? ` ${res.statusText}` : ''}`);
+                    return;
+                }
+
+                if (res.status === 401) {
+                    setLogoutResponse(`Error 401: ${res.data}`);
+                    return;
+                }
+
+                setLogoutResponse(`Rate limited, try again in ${res.data.reset} seconds`);
+            });
+        },
+        [controllers, loggedInUser],
+    );
+
+    return (
+        <>
+            <SiteBreadcrumbs
+                items={[
+                    { to: '/', text: 'Home' },
+                    { to: '/users', text: 'Users' },
+                    { to: `/users/${user._id}`, text: user.username },
+                ]}
+            />
+            <Container maxWidth="xs" sx={{ mt: 3 }}>
+                <Stack spacing={1}>
+                    <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
+                        <div style={{ flexGrow: 1 }} />
+                        <ProfilePicture user={user} isSelf />
+                        <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {user.username}#{user.discriminator}
+                            <br />
+                            <span style={{ color: 'gray' }}>{user._id}</span>
+                        </Typography>
+                        <div style={{ flexGrow: 1 }} />
+                        <Stack justifySelf="flex-end">
+                            <Typography sx={{ display: 'flex', alignItems: 'center' }} title="Number of public posts.">
+                                <ImageIcon />
+                                &nbsp;{user.posts}
+                            </Typography>
+                            <Typography sx={{ display: 'flex', alignItems: 'center' }} title="Number of comments.">
+                                <ChatBubbleIcon />
+                                &nbsp;{user.comments}
+                            </Typography>
+                        </Stack>
+                    </Stack>
+
+                    <UserBadges user={user} />
+
+                    <Typography title={new Date(user.registered).toUTCString()} textAlign="center">
+                        Registered {dayjs(user.registered).fromNow()}.{' '}
+                        <span style={{ color: 'gray' }}>({new Date(user.registered).toLocaleDateString('en-NZ')})</span>
                     </Typography>
-                )}
-                {permissions.length !== 0 && (
-                    <>
-                        <ListItemButton
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setIsViewingPermissions(!isViewingPermissions);
-                            }}
-                        >
-                            {isViewingPermissions ? 'Hide' : 'View'} Permissions ({permissions.length})
-                            <ExpandMore disableRipple expand={isViewingPermissions}>
-                                <ExpandMoreIcon />
-                            </ExpandMore>
-                        </ListItemButton>
-                        <Collapse in={isViewingPermissions}>
-                            <Grid container spacing={1} sx={{ p: 1 }}>
-                                {permissions.map((permission) => (
-                                    <Grid item key={permission}>
-                                        <Chip
-                                            title={permissionDescriptionsMap[permission]}
-                                            label={permission}
-                                            component="span"
-                                        />
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Collapse>
-                    </>
-                )}
-            </Stack>
-        </Container>
+
+                    <Typography title={new Date(user.lastLoginOrRefresh).toUTCString()} textAlign="center">
+                        Last seen {dayjs(user.lastLoginOrRefresh).fromNow()}.{' '}
+                        <span style={{ color: 'gray' }}>
+                            ({new Date(user.lastLoginOrRefresh).toLocaleDateString('en-NZ')})
+                        </span>
+                    </Typography>
+
+                    {canViewIp && (
+                        <Typography textAlign="center">
+                            IP:{' '}
+                            <span style={{ minWidth: '100px' }}>
+                                {isRevealingIp ? user.latestIp ?? 'Unknown' : 'Hidden'}
+                            </span>
+                            <Button
+                                variant="text"
+                                color="secondary"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setIsRevealingIp(!isRevealingIp);
+                                }}
+                            >
+                                {isRevealingIp ? 'Hide' : 'Reveal'}
+                            </Button>
+                        </Typography>
+                    )}
+
+                    {permissions.length !== 0 && (
+                        <>
+                            <ListItemButton
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setIsViewingPermissions(!isViewingPermissions);
+                                }}
+                            >
+                                {isViewingPermissions ? 'Hide' : 'View'} Permissions ({permissions.length})
+                                <ExpandMore disableRipple expand={isViewingPermissions}>
+                                    <ExpandMoreIcon />
+                                </ExpandMore>
+                            </ListItemButton>
+                            <Collapse in={isViewingPermissions}>
+                                <Grid container spacing={1} sx={{ p: 1 }}>
+                                    {permissions.map((permission) => (
+                                        <Grid item key={permission}>
+                                            <Chip
+                                                title={permissionDescriptionsMap[permission]}
+                                                label={permission}
+                                                component="span"
+                                            />
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Collapse>
+                        </>
+                    )}
+
+                    {isSelf && !true && (
+                        <>
+                            <ListItemButton
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                }}
+                            >
+                                Submissions
+                                <ExpandMore disableRipple expand={false}>
+                                    <ExpandMoreIcon />
+                                </ExpandMore>
+                            </ListItemButton>
+                            <Collapse in={false}>
+                                <Grid container spacing={1} sx={{ p: 1 }}>
+                                    {permissions.map((permission) => (
+                                        <Grid item key={permission}>
+                                            <Chip
+                                                title={permissionDescriptionsMap[permission]}
+                                                label={permission}
+                                                component="span"
+                                            />
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Collapse>
+                        </>
+                    )}
+
+                    {canModifyPermissions && (
+                        <Button variant="outlined" color="info" startIcon={<GavelIcon />}>
+                            Edit Permissions
+                        </Button>
+                    )}
+
+                    {canMakeSubmission && (
+                        <Button variant="outlined" color="success" startIcon={<CreateIcon />}>
+                            New Submission
+                        </Button>
+                    )}
+
+                    {isSelf && (
+                        <Button variant="outlined" color="warning" startIcon={<LogoutIcon />} onClick={handleLogout}>
+                            Logout
+                        </Button>
+                    )}
+
+                    {logoutResponse !== '' && (
+                        <Typography color="gray" textAlign="center" gutterBottom>
+                            {logoutResponse}
+                        </Typography>
+                    )}
+
+                    <HomeButton sx={{ width: '100%' }} size="medium" />
+                </Stack>
+            </Container>
+        </>
     );
 };
 
 const ProfilePageWrapper = () => {
-    const { user: loggedInUser, controllers } = useContext(UserSessionContext);
+    const { user: loggedInUser } = useContext(UserSessionContext);
     const { settings } = useContext(SettingsContext);
     const { id } = useParams();
 
@@ -180,7 +319,7 @@ const ProfilePageWrapper = () => {
         };
     }, [id, loggedInUser?.siteToken, queriedUser, settings.rateLimitBypassToken, settings.serverUrl]);
 
-    if (id === undefined)
+    if (id === undefined) {
         return (
             <>
                 <div style={{ flexGrow: 1 }} />
@@ -192,6 +331,7 @@ const ProfilePageWrapper = () => {
                 <Footer />
             </>
         );
+    }
 
     if (error !== undefined) {
         return (
@@ -223,10 +363,7 @@ const ProfilePageWrapper = () => {
 
     return (
         <>
-            <ProfilePage
-                user={queriedUser}
-                controllers={queriedUser._id === loggedInUser?.userData._id ? controllers : undefined}
-            />
+            <ProfilePage user={queriedUser} />
             <Footer />
         </>
     );
