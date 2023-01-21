@@ -2,11 +2,11 @@ import { AIMS } from '../types';
 
 type UserPermissionKeys = keyof typeof AIMS.UserPermissions;
 
-export function permissionsToString(permission: AIMS.UserPermissions): UserPermissionKeys[] {
-    const values: UserPermissionKeys[] = [];
+export function permissionsToString(permission: AIMS.UserPermissions): [UserPermissionKeys, number][] {
+    const values: [UserPermissionKeys, number][] = [];
     while (permission) {
         const bit = permission & (~permission + 1);
-        values.push(AIMS.UserPermissions[bit] as UserPermissionKeys);
+        values.push([AIMS.UserPermissions[bit] as UserPermissionKeys, Math.log2(bit)]);
         permission ^= bit;
     }
     return values;

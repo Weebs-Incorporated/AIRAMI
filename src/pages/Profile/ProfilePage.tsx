@@ -188,10 +188,10 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                             <Collapse in={isViewingPermissions}>
                                 <Grid container spacing={1} sx={{ p: 1 }}>
                                     {permissions.map((permission) => (
-                                        <Grid item key={permission}>
+                                        <Grid item key={permission[0]}>
                                             <Chip
-                                                title={permissionDescriptionsMap[permission]}
-                                                label={permission}
+                                                title={permissionDescriptionsMap[permission[0]]}
+                                                label={permission[0]}
                                                 component="span"
                                             />
                                         </Grid>
@@ -216,10 +216,10 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                             <Collapse in={false}>
                                 <Grid container spacing={1} sx={{ p: 1 }}>
                                     {permissions.map((permission) => (
-                                        <Grid item key={permission}>
+                                        <Grid item key={permission[0]}>
                                             <Chip
-                                                title={permissionDescriptionsMap[permission]}
-                                                label={permission}
+                                                title={permissionDescriptionsMap[permission[0]]}
+                                                label={permission[0]}
                                                 component="span"
                                             />
                                         </Grid>
