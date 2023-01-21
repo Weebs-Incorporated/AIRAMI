@@ -31,6 +31,8 @@ import ImageIcon from '@mui/icons-material/Image';
 import CreateIcon from '@mui/icons-material/Create';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
 
+import eyes from './eyes.png';
+
 dayjs.extend(relativeTime);
 
 export interface ProfilePageProps {
@@ -110,6 +112,8 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
     const [isRevealingIp, setIsRevealingIp] = useState(false);
 
     const [logoutResponse, setLogoutResponse] = useState('');
+
+    const [numTimesPermissionsOpened, setNumTimesPermissionsOpened] = useState(0);
 
     const handleLogout = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -220,6 +224,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                                 onClick={(e) => {
                                     e.preventDefault();
                                     setIsViewingPermissions(!isViewingPermissions);
+                                    setNumTimesPermissionsOpened(numTimesPermissionsOpened + 1);
                                 }}
                             >
                                 {isViewingPermissions ? 'Hide' : 'View'} Permissions ({permissions.length})
@@ -229,6 +234,16 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                             </ListItemButton>
                             <Collapse in={isViewingPermissions}>
                                 <Grid container spacing={1} sx={{ p: 1 }}>
+                                    {numTimesPermissionsOpened > 10 && (
+                                        <Grid item>
+                                            <img
+                                                loading="lazy"
+                                                src={eyes}
+                                                alt="close up of my eyes"
+                                                style={{ width: '100%' }}
+                                            />
+                                        </Grid>
+                                    )}
                                     {permissions.map((permission) => (
                                         <Grid item key={permission}>
                                             <Chip
