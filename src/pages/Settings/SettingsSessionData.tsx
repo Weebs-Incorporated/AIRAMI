@@ -60,7 +60,7 @@ const SettingsSessionData = () => {
                 }
 
                 if (res.generic) {
-                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? ` ${res.statusText}` : ''}`);
+                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
                     return;
                 }
 
@@ -69,7 +69,12 @@ const SettingsSessionData = () => {
                     return;
                 }
 
-                setLastOutput(`Rate limited, try again in ${res.data.reset} seconds`);
+                if (res.status === 429) {
+                    setLastOutput(`Rate limited, try again in ${res.data.reset} seconds`);
+                    return;
+                }
+
+                throw res;
             });
         },
         [controllers, user],
@@ -92,7 +97,7 @@ const SettingsSessionData = () => {
                 }
 
                 if (res.generic) {
-                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? ` ${res.statusText}` : ''}`);
+                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
                     return;
                 }
 
@@ -111,7 +116,12 @@ const SettingsSessionData = () => {
                     return;
                 }
 
-                setLastOutput('Refreshing has been disabled');
+                if (res.status === 501) {
+                    setLastOutput('Refreshing has been disabled');
+                    return;
+                }
+
+                throw res;
             });
         },
         [controllers, user],

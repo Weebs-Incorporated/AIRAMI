@@ -1,17 +1,14 @@
 import { AIMS } from '../types';
 
-type UserPermissionKeys = keyof typeof AIMS.UserPermissions;
-
-export function permissionsToString(permission: AIMS.UserPermissions): [UserPermissionKeys, number][] {
-    const values: [UserPermissionKeys, number][] = [];
-    while (permission) {
-        const bit = permission & (~permission + 1);
-        values.push([AIMS.UserPermissions[bit] as UserPermissionKeys, Math.log2(bit)]);
-        permission ^= bit;
+export function splitPermissionsField(permissions: AIMS.UserPermissions): AIMS.UserPermissions[] {
+    const values: AIMS.UserPermissions[] = [];
+    while (permissions) {
+        const bit = permissions & (~permissions + 1);
+        values.push(bit);
+        permissions ^= bit;
     }
     return values;
 }
-
 /**
  * Checks the provided set of permissions includes the target one(s).
  * @param {User | ClientFacingUser | UserPermissions} permissionSet Object to check permissions of.
@@ -61,11 +58,11 @@ export function hasOneOfPermissions(
     return false;
 }
 
-export const permissionDescriptionsMap: Record<UserPermissionKeys, string> = {
-    AssignPermissions: 'Change permissions of themselves and others.',
-    Audit: 'Modify post attributes, delete any comments, and accept/deny/withdraw posts.',
-    Comment: 'Comment on posts (default permission).',
-    None: '',
-    Owner: 'Give/remove the AssignPermissions permission to other users, and view IPs.',
-    Upload: 'Submit posts (to be audited).',
+export const permissionDescriptionsMap: Record<AIMS.UserPermissions, string> = {
+    [AIMS.UserPermissions.AssignPermissions]: 'Change permissions of themselves and others.',
+    [AIMS.UserPermissions.Audit]: 'Modify post attributes, delete any comments, and accept/deny/withdraw posts.',
+    [AIMS.UserPermissions.Comment]: 'Comment on posts (default permission).',
+    [AIMS.UserPermissions.None]: '',
+    [AIMS.UserPermissions.Owner]: 'Give/remove the AssignPermissions permission to other users, and view IPs.',
+    [AIMS.UserPermissions.Upload]: 'Submit posts (to be audited).',
 };

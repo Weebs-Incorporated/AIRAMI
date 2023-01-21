@@ -21,6 +21,9 @@ export interface UserSessionControllers {
         existingSession: Exclude<UserSession, null>,
         controller?: AbortController,
     ): ReturnType<(typeof aims)['requestLogout']>;
+
+    /** Updates this user's client-side permissions, call this after a successful patch request.  */
+    updatePermissions(newPermissions: AIMS.UserPermissions): void;
 }
 
 export interface IUserSessionContext<TRequired extends boolean = false> {

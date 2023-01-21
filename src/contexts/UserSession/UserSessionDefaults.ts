@@ -7,6 +7,7 @@ export const defaultUserSessionControllers: UserSessionControllers = {
     requestLogin: notImplementedFunction,
     requestRefresh: notImplementedFunction,
     requestLogout: notImplementedFunction,
+    updatePermissions: notImplementedFunction,
 };
 
 export const defaultUserSessionContext: IUserSessionContext = {

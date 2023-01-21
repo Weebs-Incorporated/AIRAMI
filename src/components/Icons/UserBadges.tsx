@@ -12,7 +12,7 @@ export interface UserBadgesProps extends GridProps {
     user: AIMS.ClientFacingUser | AIMS.User;
 }
 
-const badgeIconMap: Map<UserPermissions, { label: string; title: string; icon: ReactNode }> = new Map([
+export const badgeIconMap: Map<UserPermissions, { label: string; title: string; icon: ReactNode }> = new Map([
     [
         UserPermissions.Owner,
         { label: 'Site Owner', icon: <StarIcon htmlColor="gold" />, title: 'This user owns the site.' },

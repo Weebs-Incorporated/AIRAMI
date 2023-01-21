@@ -16,7 +16,7 @@ import { HomeButton } from '../../components/Buttons';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import Footer from '../../components/Footer';
 import ProfilePicture from '../../components/ProfilePicture/ProfilePicture';
-import { hasOneOfPermissions, hasPermission, permissionDescriptionsMap, permissionsToString } from '../../helpers';
+import { hasOneOfPermissions, hasPermission, permissionDescriptionsMap, splitPermissionsField } from '../../helpers';
 import { AIMS } from '../../types';
 import { useParams } from 'react-router-dom';
 import { aims } from '../../api';
@@ -29,16 +29,17 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import ImageIcon from '@mui/icons-material/Image';
 import CreateIcon from '@mui/icons-material/Create';
+import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
 
 dayjs.extend(relativeTime);
 
 export interface ProfilePageProps {
-    user: AIMS.ClientFacingUser | AIMS.User;
+    user: AIMS.ClientFacingUser;
 }
 
 const ProfilePage = ({ user }: ProfilePageProps) => {
     const { user: loggedInUser, controllers } = useContext(UserSessionContext);
-    const permissions = useMemo(() => permissionsToString(user.permissions), [user.permissions]);
+    const permissions = useMemo(() => splitPermissionsField(user.permissions), [user.permissions]);
 
     const isSelf = useMemo(() => loggedInUser?.userData._id === user._id, [loggedInUser?.userData._id, user._id]);
 
@@ -46,16 +47,51 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
         return loggedInUser !== null && (isSelf || hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner));
     }, [isSelf, loggedInUser]);
 
-    const canModifyPermissions = useMemo(() => {
-        return (
-            loggedInUser !== null &&
-            hasOneOfPermissions(
+    const [permissionElementOpen, setPermissionElementOpen] = useState(false);
+
+    const permissionElement = useMemo(() => {
+        if (loggedInUser === null) return <></>;
+        if (
+            !hasOneOfPermissions(
                 loggedInUser.userData,
                 AIMS.UserPermissions.Owner,
                 AIMS.UserPermissions.AssignPermissions,
             )
+        ) {
+            return <></>;
+        }
+
+        if (
+            hasPermission(user, AIMS.UserPermissions.Owner) &&
+            !hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner)
+        ) {
+            return <></>;
+        }
+
+        return (
+            <>
+                <Button
+                    variant="outlined"
+                    color="info"
+                    startIcon={<GavelIcon />}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        setPermissionElementOpen(true);
+                    }}
+                >
+                    Edit Permissions
+                </Button>
+                <PermissionEditor
+                    loggedInUser={loggedInUser}
+                    open={permissionElementOpen}
+                    onClose={() => {
+                        setPermissionElementOpen(false);
+                    }}
+                    targetUser={user}
+                />
+            </>
         );
-    }, [loggedInUser]);
+    }, [loggedInUser, permissionElementOpen, user]);
 
     const canMakeSubmission = useMemo(() => {
         return (
@@ -92,7 +128,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                 }
 
                 if (res.generic) {
-                    setLogoutResponse(`Error ${res.status}${res.statusText !== '' ? ` ${res.statusText}` : ''}`);
+                    setLogoutResponse(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
                     return;
                 }
 
@@ -128,13 +164,19 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                         </Typography>
                         <div style={{ flexGrow: 1 }} />
                         <Stack justifySelf="flex-end">
-                            <Typography sx={{ display: 'flex', alignItems: 'center' }} title="Number of public posts.">
+                            <Typography
+                                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
+                                title="Number of public posts."
+                            >
+                                {user.posts}&nbsp;
                                 <ImageIcon />
-                                &nbsp;{user.posts}
                             </Typography>
-                            <Typography sx={{ display: 'flex', alignItems: 'center' }} title="Number of comments.">
+                            <Typography
+                                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
+                                title="Number of comments."
+                            >
+                                {user.comments}&nbsp;
                                 <ChatBubbleIcon />
-                                &nbsp;{user.comments}
                             </Typography>
                         </Stack>
                     </Stack>
@@ -188,10 +230,10 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                             <Collapse in={isViewingPermissions}>
                                 <Grid container spacing={1} sx={{ p: 1 }}>
                                     {permissions.map((permission) => (
-                                        <Grid item key={permission[0]}>
+                                        <Grid item key={permission}>
                                             <Chip
-                                                title={permissionDescriptionsMap[permission[0]]}
-                                                label={permission[0]}
+                                                title={permissionDescriptionsMap[permission]}
+                                                label={AIMS.UserPermissions[permission]}
                                                 component="span"
                                             />
                                         </Grid>
@@ -213,27 +255,10 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                                     <ExpandMoreIcon />
                                 </ExpandMore>
                             </ListItemButton>
-                            <Collapse in={false}>
-                                <Grid container spacing={1} sx={{ p: 1 }}>
-                                    {permissions.map((permission) => (
-                                        <Grid item key={permission[0]}>
-                                            <Chip
-                                                title={permissionDescriptionsMap[permission[0]]}
-                                                label={permission[0]}
-                                                component="span"
-                                            />
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Collapse>
                         </>
                     )}
 
-                    {canModifyPermissions && (
-                        <Button variant="outlined" color="info" startIcon={<GavelIcon />}>
-                            Edit Permissions
-                        </Button>
-                    )}
+                    {permissionElement}
 
                     {canMakeSubmission && (
                         <Button variant="outlined" color="success" startIcon={<CreateIcon />}>
@@ -296,12 +321,12 @@ const ProfilePageWrapper = () => {
             }
 
             if (res.generic) {
-                setError(`Error ${res.status}${res.statusText !== '' ? ` ${res.statusText}` : ''}`);
+                setError(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
                 return;
             }
 
             if (res.status === 401) {
-                setError('Invalid log in credentials, logging out is recommended.');
+                setError('Invalid credentials, logging out is recommended.');
                 return;
             }
 
@@ -310,8 +335,17 @@ const ProfilePageWrapper = () => {
                 return;
             }
 
-            setError(`Rate limited, try again in ${res.data.reset} seconds.`);
-            return;
+            if (res.status === 429) {
+                setError(`Rate limited, try again in ${res.data.reset} seconds.`);
+                return;
+            }
+
+            if (res.status === 501) {
+                setError('User database not enabled.');
+                return;
+            }
+
+            throw res;
         });
 
         return () => {

@@ -84,6 +84,15 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
         [settings.rateLimitBypassToken, settings.serverUrl],
     );
 
+    const updatePermissions = useCallback<UserSessionControllers['updatePermissions']>(
+        (newPermissions) => {
+            if (user === null) return;
+            user.userData.permissions = newPermissions;
+            setUser({ ...user });
+        },
+        [user],
+    );
+
     useEffect(() => {
         if (user === null) return;
 
@@ -147,8 +156,8 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
     }, [requestRefresh, settings.maxRefreshMinutes, settings.minRefreshSeconds, user]);
 
     const finalValue = useMemo<IUserSessionContext>(() => {
-        return { user, controllers: { requestLogin, requestRefresh, requestLogout } };
-    }, [requestLogin, requestLogout, requestRefresh, user]);
+        return { user, controllers: { requestLogin, requestRefresh, requestLogout, updatePermissions } };
+    }, [requestLogin, requestLogout, requestRefresh, updatePermissions, user]);
 
     return <UserSessionContext.Provider value={finalValue}>{children}</UserSessionContext.Provider>;
 };

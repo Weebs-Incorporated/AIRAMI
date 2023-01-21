@@ -6,10 +6,11 @@ type FullResponsifyFail<TData, TStatus extends number> = Responsify<TData, TStat
     generic: false;
 };
 
-export function makeRequestConfig(
+export function makeRequestConfig<T = never>(
     props: BaseRequestProps<boolean, boolean | 'optional'>,
     method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
     url?: string,
+    data?: T,
 ): AxiosRequestConfig {
     const { baseURL, controller, rateLimitBypassToken, siteToken } = props;
 
@@ -26,6 +27,7 @@ export function makeRequestConfig(
         // cloudflare pages build dies without this assertion
         headers: headers as Exclude<AxiosRequestConfig['headers'], undefined>,
         method,
+        data,
     };
 
     if (url !== undefined) conf.url = url;

@@ -108,7 +108,7 @@ export async function requestRefresh(
         const rateLimit = handleRateLimited(error.response);
         if (rateLimit) return rateLimit;
 
-        if (error.response.status === 400 || error.response.status === 404) {
+        if (error.response.status === 400 || error.response.status === 404 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,
@@ -132,15 +132,6 @@ export async function requestRefresh(
                 generic: false,
                 status: error.response.status,
                 data: error.response.statusText,
-            };
-        }
-
-        if (error.response.status === 501) {
-            return {
-                success: false,
-                generic: false,
-                status: error.response.status,
-                data: undefined,
             };
         }
 
@@ -192,7 +183,7 @@ export async function getUser(
 ): Promise<
     ServerResponse<
         Responsify<AIMS.ClientFacingUser, 200>,
-        Responsify<string, 401> | Responsify<void, 404> | RateLimitedResponse
+        Responsify<string, 401> | Responsify<void, 404 | 501> | RateLimitedResponse
     >
 > {
     const config = makeRequestConfig(props, 'GET', `/users/${id}`);
@@ -215,7 +206,62 @@ export async function getUser(
             };
         }
 
-        if (error.response.status === 404) {
+        if (error.response.status === 404 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function patchUser(
+    props: BaseRequestProps<true, true>,
+    id: string,
+    newPermissions: AIMS.UserPermissions,
+): Promise<
+    ServerResponse<
+        Responsify<void, 200 | 204>,
+        Responsify<string, 401 | 403> | Responsify<void, 404 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig<{ newPermissions: AIMS.UserPermissions }>(props, 'PATCH', `/users/${id}`, {
+        newPermissions,
+    });
+
+    try {
+        const { status } = await axios.request<void>(config);
+
+        return { success: true, status: status === 204 ? status : 200, data: undefined };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 403) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data,
+            };
+        }
+
+        if (error.response.status === 404 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,
