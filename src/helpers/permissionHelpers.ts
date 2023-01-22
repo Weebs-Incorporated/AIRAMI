@@ -1,5 +1,12 @@
 import { AIMS } from '../types';
 
+const permissionsDisplayOrder: AIMS.UserPermissions[] = [
+    AIMS.UserPermissions.Owner,
+    AIMS.UserPermissions.AssignPermissions,
+    AIMS.UserPermissions.Audit,
+    AIMS.UserPermissions.Upload,
+];
+
 export function splitPermissionsField(permissions: AIMS.UserPermissions): AIMS.UserPermissions[] {
     const values: AIMS.UserPermissions[] = [];
     while (permissions) {
@@ -7,6 +14,9 @@ export function splitPermissionsField(permissions: AIMS.UserPermissions): AIMS.U
         values.push(bit);
         permissions ^= bit;
     }
+
+    values.sort((a, b) => permissionsDisplayOrder.indexOf(a) - permissionsDisplayOrder.indexOf(b));
+
     return values;
 }
 /**
