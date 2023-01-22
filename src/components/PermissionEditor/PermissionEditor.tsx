@@ -16,20 +16,21 @@ import {
     ListItemButton,
     Typography,
 } from '@mui/material';
-import { SettingsContext, UserSession, UserSessionContext } from '../../contexts';
+import { SettingsContext, UserSession } from '../../contexts';
 import { AIMS } from '../../types';
 import { hasPermission, permissionDescriptionsMap } from '../../helpers';
+import { aims } from '../../api';
 
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import { aims } from '../../api';
 
 export interface PermissionEditorProps {
     targetUser: AIMS.ClientFacingUser;
     loggedInUser: UserSession;
     onClose: () => void;
     open: boolean;
+    onPermissionsUpdate: (newPermissions: AIMS.UserPermissions) => void;
 }
 
 const relevantPermissions: AIMS.UserPermissions[] = [
@@ -40,9 +41,7 @@ const relevantPermissions: AIMS.UserPermissions[] = [
 ];
 
 const PermissionEditor = (props: PermissionEditorProps) => {
-    const { targetUser, loggedInUser, onClose, open } = props;
-
-    const { controllers: userControllers } = useContext(UserSessionContext);
+    const { targetUser, loggedInUser, onClose, open, onPermissionsUpdate } = props;
 
     const { settings } = useContext(SettingsContext);
 
@@ -92,9 +91,7 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                     } else {
                         setSaveOutput(['Permissions were already this.', 'success']);
                     }
-                    if (targetUser._id === loggedInUser.userData._id) {
-                        userControllers.updatePermissions(newPermissions);
-                    }
+                    onPermissionsUpdate(newPermissions);
                 } else if (res.generic) {
                     setSaveOutput([`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`, 'fail']);
                 } else {
@@ -123,12 +120,11 @@ const PermissionEditor = (props: PermissionEditorProps) => {
         },
         [
             loggedInUser.siteToken,
-            loggedInUser.userData._id,
             newPermissions,
+            onPermissionsUpdate,
             settings.rateLimitBypassToken,
             settings.serverUrl,
             targetUser,
-            userControllers,
         ],
     );
 
