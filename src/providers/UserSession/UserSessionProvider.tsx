@@ -28,7 +28,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
 
             const res = await aims.requestLogin(props, authorizationCode, settings.redirectUri);
 
-            if (res !== 'canceled' && res.success) {
+            if (res !== 'aborted' && res.success) {
                 const now = new Date().toISOString();
                 setUser({ ...res.data, setAt: now, firstSetAt: now });
             }
@@ -49,7 +49,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
 
             const res = await aims.requestRefresh(props);
 
-            if (res !== 'canceled') {
+            if (res !== 'aborted') {
                 if (res.success) {
                     setUser({ ...res.data, setAt: new Date().toISOString(), firstSetAt: existingSession.firstSetAt });
                 } else {
@@ -73,7 +73,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
 
             const res = await aims.requestLogout(props);
 
-            if (res !== 'canceled' && (res.success || (!res.generic && res.status === 400))) {
+            if (res !== 'aborted' && (res.success || (!res.generic && res.status === 400))) {
                 // a 400 response means the token provided was invalid, so we should count that as a success too since
                 // the token in question can't be used anymore
                 setUser(null);
@@ -108,7 +108,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
             controller,
             rateLimitBypassToken: settings.rateLimitBypassToken,
         }).then((res) => {
-            if (res === 'canceled') {
+            if (res === 'aborted') {
                 console.log('[UserSession] Initial fetch aborted');
             } else if (res.success) {
                 console.log('[UserSession] Initial fetch successful');
@@ -147,7 +147,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
             );
             const controller = new AbortController();
             requestRefresh(user, controller).then((res) => {
-                if (res === 'canceled') {
+                if (res === 'aborted') {
                     console.log('[UserSession] Background refresh aborted');
                 } else if (res.success) {
                     console.log('[UserSession] Background refresh successful');
@@ -171,7 +171,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
 
         const timeout = setTimeout(() => {
             requestRefresh(user, controller).then((res) => {
-                if (res === 'canceled') {
+                if (res === 'aborted') {
                     console.log('[UserSession] Background refresh aborted');
                 } else if (res.success) {
                     console.log('[UserSession] Background refresh successful');

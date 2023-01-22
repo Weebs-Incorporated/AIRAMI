@@ -49,8 +49,8 @@ const SettingsSessionData = () => {
             if (user === null) return;
 
             controllers.requestLogout(user).then((res) => {
-                if (res === 'canceled') {
-                    setLastOutput('Logout cancelled');
+                if (res === 'aborted') {
+                    setLastOutput('Logout aborted');
                     return;
                 }
 
@@ -86,8 +86,8 @@ const SettingsSessionData = () => {
             if (user === null) return;
 
             controllers.requestRefresh(user).then((res) => {
-                if (res === 'canceled') {
-                    setLastOutput('Refresh cancelled');
+                if (res === 'aborted') {
+                    setLastOutput('Refresh aborted');
                     return;
                 }
 

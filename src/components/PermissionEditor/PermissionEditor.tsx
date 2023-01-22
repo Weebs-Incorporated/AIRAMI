@@ -82,7 +82,7 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                 targetUser._id,
                 newPermissions,
             ).then((res) => {
-                if (res === 'canceled') {
+                if (res === 'aborted') {
                     setSaveOutput(['Permission change was aborted', 'fail']);
                 } else if (res.success) {
                     targetUser.permissions = newPermissions;

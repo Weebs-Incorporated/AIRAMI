@@ -62,8 +62,8 @@ export function genericFailResponse(res: AxiosResponse): GenericFailResponse {
     };
 }
 
-export function unknownFailResponse(res: unknown): GenericFailResponse | 'canceled' {
-    if (res instanceof CanceledError) return 'canceled';
+export function unknownFailResponse(res: unknown): GenericFailResponse | 'aborted' {
+    if (res instanceof CanceledError) return 'aborted';
 
     if (isAxiosError(res)) {
         return {

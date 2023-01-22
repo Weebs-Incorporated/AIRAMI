@@ -127,8 +127,8 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
             if (loggedInUser === null) return;
 
             controllers.requestLogout(loggedInUser).then((res) => {
-                if (res === 'canceled') {
-                    setLogoutResponse('Logout cancelled');
+                if (res === 'aborted') {
+                    setLogoutResponse('Logout aborted');
                     return;
                 }
 
@@ -331,7 +331,7 @@ const ProfilePageWrapper = () => {
             },
             id,
         ).then((res) => {
-            if (res === 'canceled') {
+            if (res === 'aborted') {
                 setError('Profile data fetching was aborted.');
                 return;
             }

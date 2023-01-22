@@ -59,7 +59,7 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
             { page, perPage },
             null,
         ).then((res) => {
-            if (res === 'canceled') {
+            if (res === 'aborted') {
                 setError('User fetching was aborted.');
             } else if (res.success) {
                 setUsers(res.data.users);

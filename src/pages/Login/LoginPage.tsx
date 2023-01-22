@@ -62,8 +62,8 @@ const LoginPage = () => {
         const controller = new AbortController();
 
         userControllers.requestLogin(code, controller).then((res) => {
-            if (res === 'canceled') {
-                setError('Login Cancelled');
+            if (res === 'aborted') {
+                setError('Login Aborted');
                 setAuthStage(AuthStage.Errored);
             } else if (res.success) {
                 // successfully logged in

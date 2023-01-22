@@ -20,7 +20,7 @@ export type ServerResponse<TSuccess extends SuccessResponse, TFail extends Speci
     | ({ success: true } & TSuccess)
     | ({ success: false; generic: false } & TFail)
     | GenericFailResponse
-    | 'canceled';
+    | 'aborted';
 
 export interface Responsify<TData, TStatus extends number> {
     status: TStatus;

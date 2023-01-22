@@ -76,7 +76,7 @@ const SettingsPage = () => {
             rateLimitBypassToken: settings.rateLimitBypassToken,
             siteToken: undefined,
         }).then((res) => {
-            if (res === 'canceled') {
+            if (res === 'aborted') {
                 setTestApiUrlState('available');
             } else if (res.success) {
                 setTestApiUrlState('success');
@@ -111,7 +111,7 @@ const SettingsPage = () => {
             rateLimitBypassToken: settings.rateLimitBypassToken,
             siteToken: undefined,
         }).then((res) => {
-            if (res === 'canceled') {
+            if (res === 'aborted') {
                 setTestRateLimitState('available');
             } else if (res.success) {
                 setTestRateLimitState('success');
