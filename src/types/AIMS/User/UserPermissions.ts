@@ -9,7 +9,7 @@ export enum UserPermissions {
      */
     AssignPermissions = 1 << 0,
 
-    /** Modify post attributes, delete any comments, and accept/deny/withdraw posts. */
+    /** Modify post attributes and accept/deny/withdraw posts. */
     Audit = 1 << 1,
 
     /** Comment on posts (default permission). */
