@@ -25,10 +25,10 @@ import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LogoutIcon from '@mui/icons-material/Logout';
-import GavelIcon from '@mui/icons-material/Gavel';
+import AddIcon from '@mui/icons-material/Add';
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import ImageIcon from '@mui/icons-material/Image';
-import CreateIcon from '@mui/icons-material/Create';
+import EditIcon from '@mui/icons-material/Edit';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
 
 import eyes from './eyes.png';
@@ -75,7 +75,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                 <Button
                     variant="outlined"
                     color="info"
-                    startIcon={<GavelIcon />}
+                    startIcon={<EditIcon />}
                     onClick={(e) => {
                         e.preventDefault();
                         setPermissionElementOpen(true);
@@ -89,11 +89,17 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                     onClose={() => {
                         setPermissionElementOpen(false);
                     }}
+                    onPermissionsUpdate={(newPermissions) => {
+                        user.permissions = newPermissions;
+                        if (isSelf) {
+                            controllers.updatePermissions(newPermissions);
+                        }
+                    }}
                     targetUser={user}
                 />
             </>
         );
-    }, [loggedInUser, permissionElementOpen, user]);
+    }, [controllers, isSelf, loggedInUser, permissionElementOpen, user]);
 
     const canMakeSubmission = useMemo(() => {
         return (
@@ -276,7 +282,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                     {permissionElement}
 
                     {canMakeSubmission && (
-                        <Button variant="outlined" color="success" startIcon={<CreateIcon />}>
+                        <Button variant="outlined" color="success" startIcon={<AddIcon />}>
                             New Submission
                         </Button>
                     )}
