@@ -8,6 +8,7 @@ import SettingsSessionData from './SettingsSessionData';
 import Footer from '../../components/Footer';
 import { Page } from '../Page.styled';
 import { HomeButton } from '../../components/Buttons';
+import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
 
 type ChangeCallback<T extends keyof Settings> = (key: T) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 
@@ -170,80 +171,88 @@ const SettingsPage = () => {
     const [hideRateLimitToken, setHideRateLimitToken] = useState(true);
 
     return (
-        <Page maxWidth="lg">
-            <Typography variant="h2">
-                Settings <SettingsCog />
-            </Typography>
-            <Grid container spacing={4} alignItems="center" sx={{ mt: 2 }}>
-                <SettingsItem
-                    title="Endpoint for the AIMS API."
-                    label="API URL"
-                    value={settings.serverUrl}
-                    handleChange={handleTextChange('serverUrl')}
-                    handleReset={handleReset('serverUrl')}
-                    isDefault={defaultSettings.serverUrl === settings.serverUrl}
-                    inputMode="url"
-                    test={{
-                        state: testApiUrlState,
-                        handleClick: handleTestApiUrl,
-                        title: testApiUrlTitles,
-                    }}
-                />
-                <SettingsItem
-                    title="Rate limit bypass token for the AIMS API."
-                    label="Rate Limit Bypass Token"
-                    value={settings.rateLimitBypassToken}
-                    handleChange={handleTextChange('rateLimitBypassToken')}
-                    handleReset={handleReset('rateLimitBypassToken')}
-                    isDefault={defaultSettings.rateLimitBypassToken === settings.rateLimitBypassToken}
-                    test={{
-                        state: testRateLimitState,
-                        handleClick: handleTestRateLimit,
-                        title: testRateLimitTitles,
-                    }}
-                    hide={{ hidden: hideRateLimitToken, setHidden: setHideRateLimitToken }}
-                />
-                <SettingsItem
-                    title="ID of Discord application to use in OAuth."
-                    label="Discord Application ID"
-                    value={settings.discordApplicationId}
-                    handleChange={handleTextChange('discordApplicationId')}
-                    handleReset={handleReset('discordApplicationId')}
-                    isDefault={defaultSettings.discordApplicationId === settings.discordApplicationId}
-                    inputMode="numeric"
-                />
-                <SettingsItem
-                    title="URI to redirect to after login attempt."
-                    label="Login Redirect URI"
-                    value={settings.redirectUri}
-                    handleChange={handleTextChange('redirectUri')}
-                    handleReset={handleReset('redirectUri')}
-                    isDefault={defaultSettings.redirectUri === settings.redirectUri}
-                    inputMode="url"
-                />
-                <SettingsItem
-                    title="Will not try to refresh site token if it expires in less than this many seconds."
-                    label="Min Refresh Threshold (Seconds)"
-                    value={settings.minRefreshSeconds.toString()}
-                    handleChange={handleNumberChange('minRefreshSeconds')}
-                    handleReset={handleReset('minRefreshSeconds')}
-                    isDefault={defaultSettings.minRefreshSeconds === settings.minRefreshSeconds}
-                    inputMode="numeric"
-                />
-                <SettingsItem
-                    title="Will try to refresh site token if it expires in this many minutes or less."
-                    label="Max Refresh Threshold (Minutes)"
-                    value={settings.maxRefreshMinutes.toString()}
-                    handleChange={handleNumberChange('maxRefreshMinutes')}
-                    handleReset={handleReset('maxRefreshMinutes')}
-                    isDefault={defaultSettings.maxRefreshMinutes === settings.maxRefreshMinutes}
-                    inputMode="numeric"
-                />
-            </Grid>
-            <SettingsSessionData />
-            <HomeButton sx={{ mt: 3 }} />
-            <Footer />
-        </Page>
+        <>
+            <SiteBreadcrumbs
+                items={[
+                    { to: '/', text: 'Home' },
+                    { to: '/settings', text: 'Settings' },
+                ]}
+            />
+            <Page maxWidth="lg">
+                <Typography variant="h2">
+                    Settings <SettingsCog />
+                </Typography>
+                <Grid container spacing={4} alignItems="center" sx={{ mt: 2 }}>
+                    <SettingsItem
+                        title="Endpoint for the AIMS API."
+                        label="API URL"
+                        value={settings.serverUrl}
+                        handleChange={handleTextChange('serverUrl')}
+                        handleReset={handleReset('serverUrl')}
+                        isDefault={defaultSettings.serverUrl === settings.serverUrl}
+                        inputMode="url"
+                        test={{
+                            state: testApiUrlState,
+                            handleClick: handleTestApiUrl,
+                            title: testApiUrlTitles,
+                        }}
+                    />
+                    <SettingsItem
+                        title="Rate limit bypass token for the AIMS API."
+                        label="Rate Limit Bypass Token"
+                        value={settings.rateLimitBypassToken}
+                        handleChange={handleTextChange('rateLimitBypassToken')}
+                        handleReset={handleReset('rateLimitBypassToken')}
+                        isDefault={defaultSettings.rateLimitBypassToken === settings.rateLimitBypassToken}
+                        test={{
+                            state: testRateLimitState,
+                            handleClick: handleTestRateLimit,
+                            title: testRateLimitTitles,
+                        }}
+                        hide={{ hidden: hideRateLimitToken, setHidden: setHideRateLimitToken }}
+                    />
+                    <SettingsItem
+                        title="ID of Discord application to use in OAuth."
+                        label="Discord Application ID"
+                        value={settings.discordApplicationId}
+                        handleChange={handleTextChange('discordApplicationId')}
+                        handleReset={handleReset('discordApplicationId')}
+                        isDefault={defaultSettings.discordApplicationId === settings.discordApplicationId}
+                        inputMode="numeric"
+                    />
+                    <SettingsItem
+                        title="URI to redirect to after login attempt."
+                        label="Login Redirect URI"
+                        value={settings.redirectUri}
+                        handleChange={handleTextChange('redirectUri')}
+                        handleReset={handleReset('redirectUri')}
+                        isDefault={defaultSettings.redirectUri === settings.redirectUri}
+                        inputMode="url"
+                    />
+                    <SettingsItem
+                        title="Will not try to refresh site token if it expires in less than this many seconds."
+                        label="Min Refresh Threshold (Seconds)"
+                        value={settings.minRefreshSeconds.toString()}
+                        handleChange={handleNumberChange('minRefreshSeconds')}
+                        handleReset={handleReset('minRefreshSeconds')}
+                        isDefault={defaultSettings.minRefreshSeconds === settings.minRefreshSeconds}
+                        inputMode="numeric"
+                    />
+                    <SettingsItem
+                        title="Will try to refresh site token if it expires in this many minutes or less."
+                        label="Max Refresh Threshold (Minutes)"
+                        value={settings.maxRefreshMinutes.toString()}
+                        handleChange={handleNumberChange('maxRefreshMinutes')}
+                        handleReset={handleReset('maxRefreshMinutes')}
+                        isDefault={defaultSettings.maxRefreshMinutes === settings.maxRefreshMinutes}
+                        inputMode="numeric"
+                    />
+                </Grid>
+                <SettingsSessionData />
+                <HomeButton sx={{ mt: 3 }} />
+                <Footer />
+            </Page>
+        </>
     );
 };
 
