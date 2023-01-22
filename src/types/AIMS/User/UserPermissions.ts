@@ -12,12 +12,9 @@ export enum UserPermissions {
     /** Modify post attributes and accept/deny/withdraw posts. */
     Audit = 1 << 1,
 
-    /** Comment on posts (default permission). */
-    // Comment = 1 << 2,
-
     /** Submit posts (to be audited). */
-    Upload = 1 << 3,
+    Upload = 1 << 2,
 
     /** Give/remove the {@link AssignPermissions} permission to other users, and view IPs. */
-    Owner = 1 << 4,
+    Owner = 1 << 3,
 }
