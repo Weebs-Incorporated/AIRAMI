@@ -18,7 +18,7 @@ import { HomeButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
 import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
 import { SettingsContext, UserSession, UserSessionContext } from '../../contexts';
-import { hasPermission } from '../../helpers';
+import { hasOneOfPermissions, hasPermission } from '../../helpers';
 import { AIMS } from '../../types';
 import { Page } from '../Page.styled';
 
@@ -203,7 +203,10 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
 const UsersPageWrapper = () => {
     const { user } = useContext(UserSessionContext);
 
-    if (user === null) {
+    if (
+        user === null ||
+        !hasOneOfPermissions(user.userData, AIMS.UserPermissions.Owner, AIMS.UserPermissions.AssignPermissions)
+    ) {
         return (
             <>
                 <SiteBreadcrumbs
