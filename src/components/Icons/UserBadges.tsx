@@ -6,7 +6,6 @@ import { splitPermissionsField } from '../../helpers';
 import StarIcon from '@mui/icons-material/Star';
 import SecurityIcon from '@mui/icons-material/Security';
 import GavelIcon from '@mui/icons-material/Gavel';
-import CommentIcon from '@mui/icons-material/Comment';
 import CreateIcon from '@mui/icons-material/Create';
 
 export interface UserBadgesProps extends GridProps {
