@@ -2,7 +2,6 @@ import {
     Button,
     Collapse,
     LinearProgress,
-    Stack,
     Table,
     TableBody,
     TableCell,
@@ -39,7 +38,6 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState<AIMS.ClientFacingUser[]>();
     const [isRevealingIps, setIsRevealingIps] = useState(false);
-    const [isShowingAllPermissions, setIsShowingAllPermissions] = useState(false);
 
     const canShowIps = useMemo(
         () => hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner),
@@ -127,29 +125,21 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
                     <Typography color="lightcoral">{error}</Typography>
                 </Collapse>
             )}
-            <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ width: '100%' }}>
+
+            {canShowIps && (
                 <Button
                     variant="outlined"
+                    sx={{ justifySelf: 'flex-end', alignSelf: 'flex-end' }}
                     onClick={(e) => {
                         e.preventDefault();
-                        setIsShowingAllPermissions(!isShowingAllPermissions);
+                        setIsRevealingIps(!isRevealingIps);
                     }}
+                    startIcon={isRevealingIps ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 >
-                    {isShowingAllPermissions ? 'Partial' : 'All'} Permissions
+                    {isRevealingIps ? 'Hide' : 'Reveal'} IPs
                 </Button>
-                {canShowIps && (
-                    <Button
-                        variant="outlined"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            setIsRevealingIps(!isRevealingIps);
-                        }}
-                        startIcon={isRevealingIps ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    >
-                        {isRevealingIps ? 'Hide' : 'Reveal'} IPs
-                    </Button>
-                )}
-            </Stack>
+            )}
+
             {paginationElement}
             <TableContainer>
                 <Table>
@@ -176,7 +166,6 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
                                     <UserRow
                                         key={e._id}
                                         user={e}
-                                        showFullPermissions={isShowingAllPermissions}
                                         showIp={isRevealingIps}
                                         loggedInUser={loggedInUser}
                                         onPermissionUpdate={(newPermissions, isSelf) => {

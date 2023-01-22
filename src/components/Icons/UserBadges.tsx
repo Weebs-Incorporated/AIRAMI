@@ -10,7 +10,6 @@ import CreateIcon from '@mui/icons-material/Create';
 
 export interface UserBadgesProps extends GridProps {
     user: AIMS.ClientFacingUser | AIMS.User;
-    showAll?: boolean;
 }
 
 export const badgeIconMap: Record<AIMS.UserPermissions, { label: string; title: string; icon: ReactNode }> = {
@@ -32,26 +31,16 @@ export const badgeIconMap: Record<AIMS.UserPermissions, { label: string; title: 
         title: 'This user owns the site.',
     },
     [AIMS.UserPermissions.Upload]: {
-        label: 'Upload',
+        label: 'Uploader',
         icon: <CreateIcon color="success" />,
         title: 'This user can make post submissions to the site.',
     },
 };
 
-const relevantPermissions = new Set<AIMS.UserPermissions>([
-    AIMS.UserPermissions.Owner,
-    AIMS.UserPermissions.AssignPermissions,
-    AIMS.UserPermissions.Audit,
-]);
-
 const NonMemoizedUserBadges = (props: UserBadgesProps) => {
-    const { user, showAll, ...rest } = props;
+    const { user, ...rest } = props;
 
-    let permissions = splitPermissionsField(user.permissions);
-
-    if (!showAll) permissions = permissions.filter((e) => relevantPermissions.has(e));
-
-    const badges = permissions.map((permission) => {
+    const badges = splitPermissionsField(user.permissions).map((permission) => {
         const { title, icon, label } = badgeIconMap[permission];
         return (
             <Grid item key={permission}>

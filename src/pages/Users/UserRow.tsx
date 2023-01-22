@@ -17,13 +17,12 @@ dayjs.extend(relativeTime);
 export interface UserRowProps {
     user: AIMS.ClientFacingUser;
     showIp: boolean;
-    showFullPermissions: boolean;
     loggedInUser: UserSession;
     onPermissionUpdate: (newPermissions: AIMS.UserPermissions, isSelf: boolean) => void;
 }
 
 const UserRow = (props: UserRowProps) => {
-    const { user, showIp, showFullPermissions, loggedInUser, onPermissionUpdate } = props;
+    const { user, showIp, loggedInUser, onPermissionUpdate } = props;
 
     const [permissionElementOpen, setPermissionElementOpen] = useState(false);
 
@@ -81,7 +80,7 @@ const UserRow = (props: UserRowProps) => {
             {showIp && <TableCell>{user.latestIp}</TableCell>}
             <TableCell>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <UserBadges user={user} showAll={showFullPermissions} justifyContent="flex-start" />
+                    <UserBadges user={user} justifyContent="flex-start" />
                     {permissionElement}
                 </div>
             </TableCell>
