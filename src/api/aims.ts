@@ -139,6 +139,47 @@ export async function requestRefresh(
     }
 }
 
+export async function requestSelf(
+    props: BaseRequestProps<true, true>,
+): Promise<
+    ServerResponse<
+        Responsify<AIMS.User, 200>,
+        Responsify<string, 401> | Responsify<void, 404 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig(props, 'GET', '/users/@me');
+
+    try {
+        const { data } = await axios.request<AIMS.User>(config);
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 404 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
 export async function requestLogout(
     props: BaseRequestProps<true, true>,
 ): Promise<
@@ -262,6 +303,60 @@ export async function patchUser(
         }
 
         if (error.response.status === 404 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+type GetUsersInput = {
+    pagination: AIMS.PaginationInput;
+    withIds: string[] | null;
+};
+
+type GetUsersOutput = {
+    users: AIMS.ClientFacingUser[];
+    pagination: AIMS.PaginationResponse;
+};
+
+export async function getUsers(
+    props: BaseRequestProps<true, 'optional'>,
+    pagination: AIMS.PaginationInput,
+    withIds: string[] | null,
+): Promise<
+    ServerResponse<
+        Responsify<GetUsersOutput, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig<GetUsersInput>(props, 'POST', '/users/all', { pagination, withIds });
+
+    try {
+        const { data } = await axios.request<GetUsersOutput>(config);
+
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 403 || error.response.status === 404 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,
