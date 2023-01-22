@@ -93,6 +93,38 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
         [user],
     );
 
+    const [doneInitialRefresh, setDoneInitialRefresh] = useState(false);
+
+    useEffect(() => {
+        if (doneInitialRefresh || user === null) return;
+
+        console.log('[UserSession] Doing initial fetch on page load...');
+
+        const controller = new AbortController();
+
+        aims.requestSelf({
+            baseURL: settings.serverUrl,
+            siteToken: user.siteToken,
+            controller,
+            rateLimitBypassToken: settings.rateLimitBypassToken,
+        }).then((res) => {
+            if (res === 'canceled') {
+                console.log('[UserSession] Initial fetch aborted');
+            } else if (res.success) {
+                console.log('[UserSession] Initial fetch successful');
+                setUser({ ...user, userData: res.data });
+            } else {
+                console.log('[UserSession] Initial fetch failed', res);
+            }
+
+            setDoneInitialRefresh(true);
+        });
+
+        return () => {
+            controller.abort();
+        };
+    }, [doneInitialRefresh, requestRefresh, settings.rateLimitBypassToken, settings.serverUrl, user]);
+
     useEffect(() => {
         if (user === null) return;
 
