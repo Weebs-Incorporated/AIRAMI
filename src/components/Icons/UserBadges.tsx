@@ -26,11 +26,6 @@ export const badgeIconMap: Record<AIMS.UserPermissions, { label: string; title: 
         icon: <GavelIcon color="info" />,
         title: 'This user reviews and moderates posts.',
     },
-    [AIMS.UserPermissions.Comment]: {
-        label: 'Comment',
-        icon: <CommentIcon color="primary" />,
-        title: 'This user can make new comments.',
-    },
     [AIMS.UserPermissions.None]: { label: '', icon: <></>, title: '' },
     [AIMS.UserPermissions.Owner]: {
         label: 'Site Owner',

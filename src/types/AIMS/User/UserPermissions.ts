@@ -13,7 +13,7 @@ export enum UserPermissions {
     Audit = 1 << 1,
 
     /** Comment on posts (default permission). */
-    Comment = 1 << 2,
+    // Comment = 1 << 2,
 
     /** Submit posts (to be audited). */
     Upload = 1 << 3,

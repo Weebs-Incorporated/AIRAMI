@@ -8,5 +8,4 @@ export interface User extends Pick<APIUser, 'username' | 'discriminator' | 'avat
     registered: string;
     lastLoginOrRefresh: string;
     posts: number;
-    comments: number;
 }

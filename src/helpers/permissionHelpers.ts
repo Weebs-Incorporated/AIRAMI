@@ -60,8 +60,7 @@ export function hasOneOfPermissions(
 
 export const permissionDescriptionsMap: Record<AIMS.UserPermissions, string> = {
     [AIMS.UserPermissions.AssignPermissions]: 'Change permissions of themselves and others.',
-    [AIMS.UserPermissions.Audit]: 'Modify post attributes, delete any comments, and accept/deny/withdraw posts.',
-    [AIMS.UserPermissions.Comment]: 'Comment on posts (default permission).',
+    [AIMS.UserPermissions.Audit]: 'Modify post attributes and accept/deny/withdraw posts.',
     [AIMS.UserPermissions.None]: '',
     [AIMS.UserPermissions.Owner]: 'Give/remove the AssignPermissions permission to other users, and view IPs.',
     [AIMS.UserPermissions.Upload]: 'Submit posts (to be audited).',

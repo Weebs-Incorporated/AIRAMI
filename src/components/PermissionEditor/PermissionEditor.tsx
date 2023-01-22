@@ -36,7 +36,6 @@ export interface PermissionEditorProps {
 const relevantPermissions: AIMS.UserPermissions[] = [
     AIMS.UserPermissions.AssignPermissions,
     AIMS.UserPermissions.Audit,
-    AIMS.UserPermissions.Comment,
     AIMS.UserPermissions.Upload,
 ];
 

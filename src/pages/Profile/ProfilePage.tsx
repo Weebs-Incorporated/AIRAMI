@@ -26,7 +26,6 @@ import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddIcon from '@mui/icons-material/Add';
-import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import ImageIcon from '@mui/icons-material/Image';
 import EditIcon from '@mui/icons-material/Edit';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
@@ -173,22 +172,13 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                             <span style={{ color: 'gray' }}>{user._id}</span>
                         </Typography>
                         <div style={{ flexGrow: 1 }} />
-                        <Stack justifySelf="flex-end">
-                            <Typography
-                                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
-                                title="Number of public posts."
-                            >
-                                {user.posts}&nbsp;
-                                <ImageIcon />
-                            </Typography>
-                            <Typography
-                                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
-                                title="Number of comments."
-                            >
-                                {user.comments}&nbsp;
-                                <ChatBubbleIcon />
-                            </Typography>
-                        </Stack>
+                        <Typography
+                            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
+                            title="Number of public posts."
+                        >
+                            {user.posts}&nbsp;
+                            <ImageIcon />
+                        </Typography>
                     </Stack>
 
                     <UserBadges user={user} />
