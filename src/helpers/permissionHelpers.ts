@@ -1,24 +1,12 @@
 import { AIMS } from '../types';
 
-const permissionsDisplayOrder: AIMS.UserPermissions[] = [
+export const permissionsDisplayOrder: AIMS.UserPermissions[] = [
     AIMS.UserPermissions.Owner,
     AIMS.UserPermissions.AssignPermissions,
     AIMS.UserPermissions.Audit,
     AIMS.UserPermissions.Upload,
 ];
 
-export function splitPermissionsField(permissions: AIMS.UserPermissions): AIMS.UserPermissions[] {
-    const values: AIMS.UserPermissions[] = [];
-    while (permissions) {
-        const bit = permissions & (~permissions + 1);
-        values.push(bit);
-        permissions ^= bit;
-    }
-
-    values.sort((a, b) => permissionsDisplayOrder.indexOf(a) - permissionsDisplayOrder.indexOf(b));
-
-    return values;
-}
 /**
  * Checks the provided set of permissions includes the target one(s).
  * @param {User | ClientFacingUser | UserPermissions} permissionSet Object to check permissions of.

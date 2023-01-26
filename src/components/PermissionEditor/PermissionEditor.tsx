@@ -132,32 +132,30 @@ const PermissionEditor = (props: PermissionEditorProps) => {
             <DialogTitle textAlign="center">{targetUser.username}'s Permissions</DialogTitle>
             <DialogContent>
                 <Grid container>
-                    {relevantPermissions.map((permission) => {
-                        return (
-                            <Grid item xs={12} sm={6} key={permission}>
-                                <FormControl>
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                checked={hasPermission(newPermissions, permission)}
-                                                onChange={handleCheck(permission)}
-                                            />
-                                        }
-                                        componentsProps={{ typography: { width: '100%' } }}
-                                        label={<ListItemButton>{AIMS.UserPermissions[permission]}</ListItemButton>}
-                                    />
-                                    <FormLabel>
-                                        <Typography color="gray">{permissionDescriptionsMap[permission]}</Typography>
-                                    </FormLabel>
-                                </FormControl>
-                            </Grid>
-                        );
-                    })}
+                    {relevantPermissions.map((permission) => (
+                        <Grid item xs={12} sm={6} key={permission}>
+                            <FormControl>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={hasPermission(newPermissions, permission)}
+                                            onChange={handleCheck(permission)}
+                                        />
+                                    }
+                                    componentsProps={{ typography: { width: '100%' } }}
+                                    label={<ListItemButton>{AIMS.UserPermissions[permission]}</ListItemButton>}
+                                />
+                                <FormLabel>
+                                    <Typography color="gray">{permissionDescriptionsMap[permission]}</Typography>
+                                </FormLabel>
+                            </FormControl>
+                        </Grid>
+                    ))}
                 </Grid>
             </DialogContent>
             <DialogActions>
                 <Grid container spacing={1} justifyContent="flex-end">
-                    <Grid item xs={12} sm={'auto'}>
+                    <Grid item xs={12} sm="auto">
                         <Button
                             variant="outlined"
                             startIcon={isSaving ? <CircularProgress size={20} /> : <SaveIcon />}
@@ -168,7 +166,7 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                             Save
                         </Button>
                     </Grid>
-                    <Grid item xs={12} sm={'auto'}>
+                    <Grid item xs={12} sm="auto">
                         <Button
                             variant="outlined"
                             startIcon={<RestartAltIcon />}
@@ -182,7 +180,7 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                             Reset
                         </Button>
                     </Grid>
-                    <Grid item xs={12} sm={'auto'}>
+                    <Grid item xs={12} sm="auto">
                         <Button
                             variant="outlined"
                             startIcon={<CloseIcon />}

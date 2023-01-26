@@ -16,7 +16,13 @@ import { HomeButton } from '../../components/Buttons';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import Footer from '../../components/Footer';
 import ProfilePicture from '../../components/ProfilePicture/ProfilePicture';
-import { hasOneOfPermissions, hasPermission, permissionDescriptionsMap, splitPermissionsField } from '../../helpers';
+import {
+    hasOneOfPermissions,
+    hasPermission,
+    permissionDescriptionsMap,
+    permissionsDisplayOrder,
+    splitBitField,
+} from '../../helpers';
 import { AIMS } from '../../types';
 import { useParams } from 'react-router-dom';
 import { aims } from '../../api';
@@ -31,6 +37,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
 
 import eyes from './eyes.png';
+import SubmissionCreator from '../../components/SubmissionCreator/SubmissionCreator';
 
 dayjs.extend(relativeTime);
 
@@ -40,7 +47,13 @@ export interface ProfilePageProps {
 
 const ProfilePage = ({ user }: ProfilePageProps) => {
     const { user: loggedInUser, controllers } = useContext(UserSessionContext);
-    const permissions = useMemo(() => splitPermissionsField(user.permissions), [user.permissions]);
+    const permissions = useMemo(
+        () =>
+            splitBitField(user.permissions).sort(
+                (a, b) => permissionsDisplayOrder.indexOf(a) - permissionsDisplayOrder.indexOf(b),
+            ),
+        [user.permissions],
+    );
 
     const isSelf = useMemo(() => loggedInUser?.userData._id === user._id, [loggedInUser?.userData._id, user._id]);
 
@@ -49,6 +62,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
     }, [isSelf, loggedInUser]);
 
     const [permissionElementOpen, setPermissionElementOpen] = useState(false);
+    const [submissionElementOpen, setSubmissionElementOpen] = useState(false);
 
     const permissionElement = useMemo(() => {
         if (loggedInUser === null) return <></>;
@@ -100,17 +114,42 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
         );
     }, [controllers, isSelf, loggedInUser, permissionElementOpen, user]);
 
-    const canMakeSubmission = useMemo(() => {
-        return (
-            loggedInUser?.userData._id === user._id &&
-            hasOneOfPermissions(
+    const submissionElement = useMemo(() => {
+        if (loggedInUser === null || !isSelf) return <></>;
+
+        if (
+            !hasOneOfPermissions(
                 loggedInUser.userData,
-                AIMS.UserPermissions.AssignPermissions,
                 AIMS.UserPermissions.Owner,
+                AIMS.UserPermissions.AssignPermissions,
                 AIMS.UserPermissions.Upload,
             )
+        ) {
+            return <></>;
+        }
+        return (
+            <>
+                <Button
+                    variant="outlined"
+                    color="success"
+                    startIcon={<AddIcon />}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        setSubmissionElementOpen(true);
+                    }}
+                >
+                    New Submission
+                </Button>
+                <SubmissionCreator
+                    loggedInUser={loggedInUser}
+                    open={submissionElementOpen}
+                    onClose={() => {
+                        setSubmissionElementOpen(false);
+                    }}
+                />
+            </>
         );
-    }, [loggedInUser, user._id]);
+    }, [isSelf, loggedInUser, submissionElementOpen]);
 
     const [isViewingPermissions, setIsViewingPermissions] = useState(false);
 
@@ -271,11 +310,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
 
                     {permissionElement}
 
-                    {canMakeSubmission && (
-                        <Button variant="outlined" color="success" startIcon={<AddIcon />}>
-                            New Submission
-                        </Button>
-                    )}
+                    {submissionElement}
 
                     {isSelf && (
                         <Button variant="outlined" color="warning" startIcon={<LogoutIcon />} onClick={handleLogout}>

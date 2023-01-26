@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Grid, GridProps, ListItemButton, ListItemIcon } from '@mui/material';
 import { AIMS } from '../../types';
-import { splitPermissionsField } from '../../helpers';
+import { permissionsDisplayOrder, splitBitField } from '../../helpers';
 
 import StarIcon from '@mui/icons-material/Star';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -40,24 +40,32 @@ export const badgeIconMap: Record<AIMS.UserPermissions, { label: string; title: 
 const NonMemoizedUserBadges = (props: UserBadgesProps) => {
     const { user, ...rest } = props;
 
-    const badges = splitPermissionsField(user.permissions).map((permission) => {
-        const { title, icon, label } = badgeIconMap[permission];
-        return (
-            <Grid item key={permission}>
-                <ListItemButton title={title} disableGutters dense sx={{ p: (t) => t.spacing(0.5, 1) }} disableRipple>
-                    <ListItemIcon sx={{ minWidth: 'unset', pr: 0.5 }}>{icon}</ListItemIcon>
-                    <span
-                        style={{
-                            color: 'gray',
-                            fontSize: '12px',
-                        }}
+    const badges = splitBitField(user.permissions)
+        .sort((a, b) => permissionsDisplayOrder.indexOf(a) - permissionsDisplayOrder.indexOf(b))
+        .map((permission) => {
+            const { title, icon, label } = badgeIconMap[permission];
+            return (
+                <Grid item key={permission}>
+                    <ListItemButton
+                        title={title}
+                        disableGutters
+                        dense
+                        sx={{ p: (t) => t.spacing(0.5, 1) }}
+                        disableRipple
                     >
-                        {label}
-                    </span>
-                </ListItemButton>
-            </Grid>
-        );
-    });
+                        <ListItemIcon sx={{ minWidth: 'unset', pr: 0.5 }}>{icon}</ListItemIcon>
+                        <span
+                            style={{
+                                color: 'gray',
+                                fontSize: '12px',
+                            }}
+                        >
+                            {label}
+                        </span>
+                    </ListItemButton>
+                </Grid>
+            );
+        });
 
     if (badges.length === 0) {
         badges.push(
