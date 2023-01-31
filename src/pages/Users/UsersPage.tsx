@@ -1,7 +1,9 @@
 import {
     Button,
     Collapse,
+    Fade,
     LinearProgress,
+    Stack,
     Table,
     TableBody,
     TableCell,
@@ -11,7 +13,7 @@ import {
     TableRow,
     Typography,
 } from '@mui/material';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { aims } from '../../api';
 import { HomeButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
@@ -25,6 +27,8 @@ import { Page } from '../Page.styled';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import RefreshIcon from '@mui/icons-material/Refresh';
+
 export interface UsersPageProps {
     loggedInUser: UserSession;
 }
@@ -45,85 +49,107 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
         [loggedInUser.userData],
     );
 
+    const fetchAllUsers = useCallback(
+        (controller?: AbortController) => {
+            aims.getAllUsers(
+                {
+                    baseURL: settings.serverUrl,
+                    siteToken: loggedInUser.siteToken,
+                    controller,
+                    rateLimitBypassToken: settings.rateLimitBypassToken,
+                },
+                page,
+                perPage,
+            ).then((res) => {
+                if (res === 'aborted') setError(messages.aborted);
+                else if (res.success) {
+                    setUsers(res.data.users);
+                    setTotalUserCount(res.data.totalItems);
+                    setError('');
+                } else if (res.generic) setError(messages.genericFail(res));
+                else if (res.status === 401) setError(messages[401](res.data));
+                else if (res.status === 403) setError(messages[403]());
+                else if (res.status === 429) setError(messages[429](res.data));
+                else if (res.status === 501) setError(messages[501]);
+                else throw res;
+            });
+        },
+        [loggedInUser.siteToken, page, perPage, settings.rateLimitBypassToken, settings.serverUrl],
+    );
+
     useEffect(() => {
         const controller = new AbortController();
 
-        aims.getAllUsers(
-            {
-                baseURL: settings.serverUrl,
-                siteToken: loggedInUser.siteToken,
-                controller,
-                rateLimitBypassToken: settings.rateLimitBypassToken,
-            },
-            page,
-            perPage,
-        ).then((res) => {
-            if (res === 'aborted') setError(messages.aborted);
-            else if (res.success) {
-                setUsers(res.data.users);
-                setTotalUserCount(res.data.totalItems);
-                setError('');
-            } else if (res.generic) setError(messages.genericFail(res));
-            else if (res.status === 401) setError(messages[401](res.data));
-            else if (res.status === 403) setError(messages[403]());
-            else if (res.status === 429) setError(messages[429](res.data));
-            else if (res.status === 501) setError(messages[501]);
-            else throw res;
-        });
+        fetchAllUsers(controller);
 
         return () => {
             controller.abort();
         };
-    }, [page, perPage, settings.rateLimitBypassToken, settings.serverUrl, loggedInUser.siteToken]);
+    }, [fetchAllUsers]);
 
-    const paginationElement = useMemo(() => {
-        if (users === undefined) return <></>;
-
-        return (
-            <TablePagination
-                component="div"
-                sx={{ alignSelf: 'flex-start' }}
-                labelRowsPerPage="Users per page"
-                rowsPerPageOptions={[20, 50, 100]}
-                count={totalUserCount}
-                rowsPerPage={perPage}
-                page={page}
-                onPageChange={(e, newPage) => {
-                    e?.preventDefault();
-                    setPage(newPage);
-                }}
-                onRowsPerPageChange={(e) => {
-                    e.preventDefault();
-                    setPerPage(parseInt(e.target.value, 10));
-                    setPage(0);
-                }}
-            />
-        );
-    }, [page, perPage, totalUserCount, users]);
+    const paginationElement = useMemo(
+        () => (
+            <Fade in={users !== undefined}>
+                <TablePagination
+                    component="div"
+                    sx={{ alignSelf: 'flex-start' }}
+                    labelRowsPerPage="Users per page"
+                    rowsPerPageOptions={[20, 50, 100]}
+                    count={totalUserCount}
+                    rowsPerPage={perPage}
+                    page={page}
+                    onPageChange={(e, newPage) => {
+                        e?.preventDefault();
+                        setPage(newPage);
+                    }}
+                    onRowsPerPageChange={(e) => {
+                        e.preventDefault();
+                        setPerPage(parseInt(e.target.value, 10));
+                        setPage(0);
+                    }}
+                />
+            </Fade>
+        ),
+        [page, perPage, totalUserCount, users],
+    );
 
     return (
         <>
-            {error !== '' && (
-                <Collapse in>
-                    <Typography color="lightcoral">{error}</Typography>
-                </Collapse>
-            )}
+            <Collapse in={error !== ''}>
+                <Typography color="lightcoral">{error}</Typography>
+            </Collapse>
 
-            {canShowIps && (
+            <Stack direction="row" alignSelf="flex-end" spacing={1}>
                 <Button
                     variant="outlined"
-                    sx={{ justifySelf: 'flex-end', alignSelf: 'flex-end' }}
                     onClick={(e) => {
                         e.preventDefault();
-                        setIsRevealingIps(!isRevealingIps);
+                        setUsers(undefined);
+                        fetchAllUsers();
                     }}
-                    startIcon={isRevealingIps ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    disabled={users === undefined}
+                    startIcon={<RefreshIcon />}
                 >
-                    {isRevealingIps ? 'Hide' : 'Reveal'} IPs
+                    Refresh
                 </Button>
-            )}
+                {canShowIps && (
+                    <Fade in={users !== undefined}>
+                        <Button
+                            variant="outlined"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setIsRevealingIps(!isRevealingIps);
+                            }}
+                            startIcon={isRevealingIps ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        >
+                            {isRevealingIps ? 'Hide' : 'Reveal'} IPs
+                        </Button>
+                    </Fade>
+                )}
+            </Stack>
 
             {paginationElement}
+
             <TableContainer>
                 <Table>
                     <TableHead>
@@ -167,6 +193,7 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
                     </TableBody>
                 </Table>
             </TableContainer>
+
             {paginationElement}
         </>
     );

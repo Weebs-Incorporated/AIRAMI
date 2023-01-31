@@ -1,4 +1,4 @@
-import { Collapse, Grid, LinearProgress, TablePagination, Typography } from '@mui/material';
+import { Collapse, Fade, Grid, LinearProgress, TablePagination, Typography } from '@mui/material';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { aims } from '../../api';
@@ -78,8 +78,8 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
             },
             submissions.map((e) => e.properties.uploaded.by),
         ).then((res) => {
-            if (res === 'aborted') setError(messages.aborted);
-            else if (res.success) {
+            if (res === 'aborted') return;
+            if (res.success) {
                 const newUsers = Object.assign({}, ...res.data.map((e) => ({ [e._id]: e })));
                 setUsers(newUsers);
                 setError('');
@@ -94,38 +94,37 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
         };
     }, [loggedInUser.siteToken, page, perPage, settings.rateLimitBypassToken, settings.serverUrl, submissions]);
 
-    const paginationElement = useMemo(() => {
-        if (submissions === undefined) return <></>;
-
-        return (
-            <TablePagination
-                component="div"
-                sx={{ alignSelf: 'flex-start' }}
-                labelRowsPerPage="Submissions per page"
-                rowsPerPageOptions={[20, 50, 100]}
-                count={totalSubmissionCount}
-                rowsPerPage={perPage}
-                page={page}
-                onPageChange={(e, newPage) => {
-                    e?.preventDefault();
-                    setPage(newPage);
-                }}
-                onRowsPerPageChange={(e) => {
-                    e.preventDefault();
-                    setPerPage(parseInt(e.target.value, 10));
-                    setPage(0);
-                }}
-            />
-        );
-    }, [page, perPage, submissions, totalSubmissionCount]);
+    const paginationElement = useMemo(
+        () => (
+            <Fade in={submissions !== undefined}>
+                <TablePagination
+                    component="div"
+                    sx={{ alignSelf: 'flex-start' }}
+                    labelRowsPerPage="Submissions per page"
+                    rowsPerPageOptions={[20, 50, 100]}
+                    count={totalSubmissionCount}
+                    rowsPerPage={perPage}
+                    page={page}
+                    onPageChange={(e, newPage) => {
+                        e?.preventDefault();
+                        setPage(newPage);
+                    }}
+                    onRowsPerPageChange={(e) => {
+                        e.preventDefault();
+                        setPerPage(parseInt(e.target.value, 10));
+                        setPage(0);
+                    }}
+                />
+            </Fade>
+        ),
+        [page, perPage, submissions, totalSubmissionCount],
+    );
 
     return (
         <>
-            {error !== '' && (
-                <Collapse in>
-                    <Typography color="lightcoral">{error}</Typography>
-                </Collapse>
-            )}
+            <Collapse in={error !== ''}>
+                <Typography color="lightcoral">{error}</Typography>
+            </Collapse>
 
             {paginationElement}
 
@@ -146,6 +145,8 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
                     </>
                 )}
             </Grid>
+
+            {paginationElement}
         </>
     );
 };
