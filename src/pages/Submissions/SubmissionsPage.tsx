@@ -109,19 +109,22 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
     }, [loggedInUser.siteToken, page, settings.rateLimitBypassToken, settings.serverUrl, submissions]);
 
     const paginationElement = useMemo(
-        () => (
-            <Fade in={submissions !== undefined}>
-                <Pagination
-                    count={Math.ceil(totalSubmissionCount / perPage)}
-                    page={page + 1}
-                    onChange={(_e, p) => setPage(p - 1)}
-                    shape="rounded"
-                    variant="outlined"
-                    color="standard"
-                    size={isSmall ? 'small' : 'large'}
-                />
-            </Fade>
-        ),
+        () =>
+            totalSubmissionCount === 0 && submissions !== undefined ? (
+                <></>
+            ) : (
+                <Fade in={submissions !== undefined}>
+                    <Pagination
+                        count={Math.ceil(totalSubmissionCount / perPage)}
+                        page={page + 1}
+                        onChange={(_e, p) => setPage(p - 1)}
+                        shape="rounded"
+                        variant="outlined"
+                        color="standard"
+                        size={isSmall ? 'small' : 'large'}
+                    />
+                </Fade>
+            ),
         [isSmall, page, submissions, totalSubmissionCount],
     );
 
@@ -155,23 +158,7 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
                 </ImageList>
             )}
 
-            {/* <Grid container spacing={1}>
-                {submissions === undefined ? (
-                    <Grid item xs={12}>
-                        <LinearProgress />
-                    </Grid>
-                ) : (
-                    <>
-                        {submissions.map((e) => (
-                            <SubmissionRow
-                                key={e._id}
-                                user={users[e.properties.uploaded.by] ?? e.properties.uploaded.by}
-                                submission={e}
-                            />
-                        ))}
-                    </>
-                )}
-            </Grid> */}
+            {totalSubmissionCount === 0 && <Typography color="lightgreen">pog pog pogu</Typography>}
 
             {paginationElement}
         </>
