@@ -1,6 +1,14 @@
-import { Collapse, Fade, Grid, LinearProgress, TablePagination, Typography } from '@mui/material';
+import {
+    Collapse,
+    Fade,
+    ImageList,
+    LinearProgress,
+    Pagination,
+    Typography,
+    useMediaQuery,
+    useTheme,
+} from '@mui/material';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { aims } from '../../api';
 import { HomeButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
@@ -12,6 +20,8 @@ import { ClientFacingUser, Post, PostStatus, UserPermissions } from '../../types
 import { Page } from '../Page.styled';
 import SubmissionRow from './SubmissionRow';
 
+const perPage = 20;
+
 export interface SubmissionsPageProps {
     loggedInUser: UserSession;
 }
@@ -19,19 +29,23 @@ export interface SubmissionsPageProps {
 const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
     const { settings } = useContext(SettingsContext);
 
-    const [searchParams, setSearchParams] = useSearchParams();
+    const theme = useTheme();
 
-    const [page, setPage] = useState(parseInt(searchParams.get('page') ?? '0'));
-    const [perPage, setPerPage] = useState(parseInt(searchParams.get('perPage') ?? '20'));
-    const [totalSubmissionCount, setTotalSubmissionCount] = useState(0);
+    const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMedium = useMediaQuery(theme.breakpoints.down('md'));
+    const isLarge = useMediaQuery(theme.breakpoints.down('lg'));
+    const isExtraLarge = useMediaQuery(theme.breakpoints.down('xl'));
+
+    const cols = useMemo(
+        () => (isSmall ? 1 : isMedium ? 2 : isLarge ? 3 : isExtraLarge ? 4 : 5),
+        [isSmall, isMedium, isLarge, isExtraLarge],
+    );
+
+    const [page, setPage] = useState(0);
+    const [totalSubmissionCount, setTotalSubmissionCount] = useState((page + 1) * perPage);
     const [error, setError] = useState('');
     const [submissions, setSubmissions] = useState<Post<PostStatus.InitialAwaitingValidation>[]>();
     const [users, setUsers] = useState<Record<string, ClientFacingUser>>({});
-
-    useEffect(
-        () => setSearchParams({ page: page.toString(), perPage: perPage.toString() }),
-        [page, perPage, setSearchParams],
-    );
 
     useEffect(() => {
         const controller = new AbortController();
@@ -62,7 +76,7 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
         return () => {
             controller.abort();
         };
-    }, [loggedInUser.siteToken, page, perPage, settings.rateLimitBypassToken, settings.serverUrl]);
+    }, [loggedInUser.siteToken, page, settings.rateLimitBypassToken, settings.serverUrl]);
 
     useEffect(() => {
         if (submissions === undefined) return;
@@ -92,32 +106,23 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
         return () => {
             controller.abort();
         };
-    }, [loggedInUser.siteToken, page, perPage, settings.rateLimitBypassToken, settings.serverUrl, submissions]);
+    }, [loggedInUser.siteToken, page, settings.rateLimitBypassToken, settings.serverUrl, submissions]);
 
     const paginationElement = useMemo(
         () => (
             <Fade in={submissions !== undefined}>
-                <TablePagination
-                    component="div"
-                    sx={{ alignSelf: 'flex-start' }}
-                    labelRowsPerPage="Submissions per page"
-                    rowsPerPageOptions={[20, 50, 100]}
-                    count={totalSubmissionCount}
-                    rowsPerPage={perPage}
-                    page={page}
-                    onPageChange={(e, newPage) => {
-                        e?.preventDefault();
-                        setPage(newPage);
-                    }}
-                    onRowsPerPageChange={(e) => {
-                        e.preventDefault();
-                        setPerPage(parseInt(e.target.value, 10));
-                        setPage(0);
-                    }}
+                <Pagination
+                    count={Math.ceil(totalSubmissionCount / perPage)}
+                    page={page + 1}
+                    onChange={(_e, p) => setPage(p - 1)}
+                    shape="rounded"
+                    variant="outlined"
+                    color="standard"
+                    size={isSmall ? 'small' : 'large'}
                 />
             </Fade>
         ),
-        [page, perPage, submissions, totalSubmissionCount],
+        [isSmall, page, submissions, totalSubmissionCount],
     );
 
     return (
@@ -126,9 +131,31 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
                 <Typography color="lightcoral">{error}</Typography>
             </Collapse>
 
+            {submissions !== undefined && (
+                <Typography variant="h4" gutterBottom>
+                    {totalSubmissionCount} Submissions
+                </Typography>
+            )}
+
             {paginationElement}
 
-            <Grid container spacing={1}>
+            {submissions === undefined ? (
+                <div style={{ width: '100%' }}>
+                    <LinearProgress />
+                </div>
+            ) : (
+                <ImageList variant="masonry" cols={cols} gap={8}>
+                    {submissions.map((e) => (
+                        <SubmissionRow
+                            key={e._id}
+                            user={users[e.properties.uploaded.by] ?? e.properties.uploaded.by}
+                            submission={e}
+                        />
+                    ))}
+                </ImageList>
+            )}
+
+            {/* <Grid container spacing={1}>
                 {submissions === undefined ? (
                     <Grid item xs={12}>
                         <LinearProgress />
@@ -144,7 +171,7 @@ const SubmissionsPage = ({ loggedInUser }: SubmissionsPageProps) => {
                         ))}
                     </>
                 )}
-            </Grid>
+            </Grid> */}
 
             {paginationElement}
         </>

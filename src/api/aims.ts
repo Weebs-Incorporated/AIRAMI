@@ -370,7 +370,11 @@ export async function getSomeUsers(
     props: BaseRequestProps<true, false>,
     withIds: string[],
 ): Promise<ServerResponse<Responsify<ClientFacingUser[], 200>, RateLimitedResponse | Responsify<void, 501>>> {
-    const config = makeRequestConfig<{ withIds: string[] }>(props, 'POST', '/users', { withIds });
+    if (withIds.length < 1) return { success: true, status: 200, data: [] };
+
+    const config = makeRequestConfig<{ withIds: string[] }>(props, 'POST', '/users', {
+        withIds: withIds.slice(0, 100),
+    });
 
     try {
         const { data } = await axios.request<ClientFacingUser[]>(config);
