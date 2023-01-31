@@ -58,32 +58,17 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
             page,
             perPage,
         ).then((res) => {
-            if (res === 'aborted') {
-                setError(messages.aborted);
-            } else if (res.success) {
+            if (res === 'aborted') setError(messages.aborted);
+            else if (res.success) {
                 setUsers(res.data.users);
                 setTotalUserCount(res.data.totalItems);
                 setError('');
-            } else if (res.generic) {
-                setError(messages.genericFail(res));
-            } else {
-                switch (res.status) {
-                    case 401:
-                        setError(messages[res.status](res.data));
-                        break;
-                    case 403:
-                        setError(messages[403](res.data));
-                        break;
-                    case 429:
-                        setError(messages[429](res.data));
-                        break;
-                    case 501:
-                        setError(messages[501]);
-                        break;
-                    default:
-                        throw res;
-                }
-            }
+            } else if (res.generic) setError(messages.genericFail(res));
+            else if (res.status === 401) setError(messages[401](res.data));
+            else if (res.status === 403) setError(messages[403]());
+            else if (res.status === 429) setError(messages[429](res.data));
+            else if (res.status === 501) setError(messages[501]);
+            else throw res;
         });
 
         return () => {

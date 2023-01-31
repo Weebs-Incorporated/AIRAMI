@@ -24,6 +24,7 @@ import { ClientFacingUser, UserPermissions } from '../../types';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { messages } from '../../constants';
 
 export interface PermissionEditorProps {
     targetUser: ClientFacingUser;
@@ -57,6 +58,8 @@ const PermissionEditor = (props: PermissionEditorProps) => {
 
     useEffect(() => setSaveOutput(['', 'success']), [newPermissions]);
 
+    useEffect(() => setNewPermissions(targetUser.permissions), [targetUser.permissions]);
+
     const handleCheck = useCallback(
         (permission: UserPermissions) => (e: React.ChangeEvent<HTMLInputElement>) => {
             if (isSaving) return;
@@ -81,9 +84,8 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                 targetUser._id,
                 newPermissions,
             ).then((res) => {
-                if (res === 'aborted') {
-                    setSaveOutput(['Permission change was aborted', 'fail']);
-                } else if (res.success) {
+                if (res === 'aborted') setSaveOutput([messages.aborted, 'fail']);
+                else if (res.success) {
                     targetUser.permissions = newPermissions;
                     if (res.status === 200) {
                         setSaveOutput(['Permissions updated.', 'success']);
@@ -91,29 +93,13 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                         setSaveOutput(['Permissions were already this.', 'success']);
                     }
                     onPermissionsUpdate(newPermissions);
-                } else if (res.generic) {
-                    setSaveOutput([`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`, 'fail']);
-                } else {
-                    switch (res.status) {
-                        case 401:
-                            setSaveOutput(['Invalid credentials, logging out is recommended.', 'fail']);
-                            break;
-                        case 403:
-                            setSaveOutput([res.data, 'fail']);
-                            break;
-                        case 404:
-                            setSaveOutput(['User not found.', 'fail']);
-                            break;
-                        case 429:
-                            setSaveOutput([`Rate limited, try again in ${res.data.reset} seconds.`, 'fail']);
-                            break;
-                        case 501:
-                            setSaveOutput(['User database not enabled.', 'fail']);
-                            break;
-                        default:
-                            throw res;
-                    }
-                }
+                } else if (res.generic) setSaveOutput([messages.genericFail(res), 'fail']);
+                else if (res.status === 401) setSaveOutput([messages[401](res.data), 'fail']);
+                else if (res.status === 403) setSaveOutput([messages[403](res.data), 'fail']);
+                else if (res.status === 404) setSaveOutput(['User Not Found', 'fail']);
+                else if (res.status === 429) setSaveOutput([messages[429](res.data), 'fail']);
+                else throw res;
+
                 setIsSaving(false);
             });
         },

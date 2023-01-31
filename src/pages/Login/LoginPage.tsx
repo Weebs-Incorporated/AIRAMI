@@ -5,6 +5,7 @@ import { HomeButton, LoginButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import { LoginPageContainer } from './LoginPage.styled';
+import { messages } from '../../constants';
 
 enum AuthStage {
     /** Requesting an access token from AIMS. */
@@ -63,25 +64,27 @@ const LoginPage = () => {
 
         userControllers.requestLogin(code, controller).then((res) => {
             if (res === 'aborted') {
-                setError('Login Aborted');
+                setError(messages.aborted);
                 setAuthStage(AuthStage.Errored);
             } else if (res.success) {
                 // successfully logged in
+                setError('');
                 setAuthStage(AuthStage.Exiting);
                 window.open('/', '_self');
             } else if (res.generic) {
-                setError(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
+                setError(messages.genericFail(res));
                 setAuthStage(AuthStage.Errored);
+            } else if (res.status === 403) {
+                setError('Invalid Code or Redirect URI (403)');
             } else if (res.status === 429) {
-                setError(`Rate limited, try again in ${res.data.reset} seconds`);
+                setError(messages[429](res.data));
                 setAuthStage(AuthStage.Errored);
+            } else if (res.status === 500) {
+                setError(messages[500](res.data));
             } else if (res.status === 501) {
-                setError('Logging in has been disabled');
+                setError(messages[501]);
                 setAuthStage(AuthStage.Errored);
-            } else {
-                setError(`Error ${res.status}: ${res.data}`);
-                setAuthStage(AuthStage.Errored);
-            }
+            } else throw res;
         });
 
         return () => {

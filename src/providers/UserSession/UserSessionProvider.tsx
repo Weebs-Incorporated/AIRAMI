@@ -38,51 +38,27 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
         [settings.rateLimitBypassToken, settings.redirectUri, settings.serverUrl],
     );
 
-    const requestRefresh = useCallback<UserSessionControllers['requestRefresh']>(
-        async (existingSession, controller) => {
-            const props: BaseRequestProps<true, true> = {
-                baseURL: settings.serverUrl,
-                controller,
-                rateLimitBypassToken: settings.rateLimitBypassToken,
-                siteToken: existingSession.siteToken,
-            };
+    const requestRefresh = useCallback<UserSessionControllers['requestRefresh']>(async (props, firstSetAt) => {
+        const res = await aims.requestRefresh(props);
 
-            const res = await aims.requestRefresh(props);
-
-            if (res !== 'aborted') {
-                if (res.success) {
-                    setUser({ ...res.data, setAt: new Date().toISOString(), firstSetAt: existingSession.firstSetAt });
-                } else {
-                    setUser(null);
-                }
-            }
-
-            return res;
-        },
-        [settings.rateLimitBypassToken, settings.serverUrl],
-    );
-
-    const requestLogout = useCallback<UserSessionControllers['requestLogout']>(
-        async (existingSession, controller) => {
-            const props: BaseRequestProps<true, true> = {
-                baseURL: settings.serverUrl,
-                controller,
-                rateLimitBypassToken: settings.rateLimitBypassToken,
-                siteToken: existingSession.siteToken,
-            };
-
-            const res = await aims.requestLogout(props);
-
-            if (res !== 'aborted' && (res.success || (!res.generic && res.status === 400))) {
-                // a 400 response means the token provided was invalid, so we should count that as a success too since
-                // the token in question can't be used anymore
+        if (res !== 'aborted') {
+            if (res.success) {
+                setUser({ ...res.data, setAt: new Date().toISOString(), firstSetAt });
+            } else {
                 setUser(null);
             }
+        }
 
-            return res;
-        },
-        [settings.rateLimitBypassToken, settings.serverUrl],
-    );
+        return res;
+    }, []);
+
+    const requestLogout = useCallback<UserSessionControllers['requestLogout']>(async (props) => {
+        const res = await aims.requestLogout(props);
+
+        if (res !== 'aborted' && res.success) setUser(null);
+
+        return res;
+    }, []);
 
     const updatePermissions = useCallback<UserSessionControllers['updatePermissions']>(
         (newPermissions) => {
@@ -128,7 +104,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
 
     // scheduling a call to /refresh in the future so the session doesn't expire
     useEffect(() => {
-        if (user === null) return;
+        if (user?.expiresInSeconds === undefined) return;
 
         const expiryTimestamp = new Date(user.setAt).getTime() + 1000 * user.expiresInSeconds;
         const secondsTillExpiry = Math.floor((expiryTimestamp - Date.now()) / 1000);
@@ -148,7 +124,15 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
                 `[UserSession] Session expires in ${minsTillExpiry} minutes, below the ${settings.maxRefreshMinutes} minute threshold; attempting refresh...`,
             );
             const controller = new AbortController();
-            requestRefresh(user, controller).then((res) => {
+            requestRefresh(
+                {
+                    baseURL: settings.serverUrl,
+                    siteToken: user.siteToken,
+                    controller,
+                    rateLimitBypassToken: settings.rateLimitBypassToken,
+                },
+                user.firstSetAt,
+            ).then((res) => {
                 if (res === 'aborted') {
                     console.log('[UserSession] Background refresh aborted');
                 } else if (res.success) {
@@ -172,7 +156,15 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
         const controller = new AbortController();
 
         const timeout = setTimeout(() => {
-            requestRefresh(user, controller).then((res) => {
+            requestRefresh(
+                {
+                    baseURL: settings.serverUrl,
+                    siteToken: user.siteToken,
+                    controller,
+                    rateLimitBypassToken: settings.rateLimitBypassToken,
+                },
+                user.firstSetAt,
+            ).then((res) => {
                 if (res === 'aborted') {
                     console.log('[UserSession] Background refresh aborted');
                 } else if (res.success) {
@@ -187,7 +179,17 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
             clearTimeout(timeout);
             controller.abort();
         };
-    }, [requestRefresh, settings.maxRefreshMinutes, settings.minRefreshSeconds, user]);
+    }, [
+        requestRefresh,
+        settings.maxRefreshMinutes,
+        settings.minRefreshSeconds,
+        settings.rateLimitBypassToken,
+        settings.serverUrl,
+        user?.expiresInSeconds,
+        user?.firstSetAt,
+        user?.setAt,
+        user?.siteToken,
+    ]);
 
     const finalValue = useMemo<IUserSessionContext>(() => {
         return { user, controllers: { requestLogin, requestRefresh, requestLogout, updatePermissions } };

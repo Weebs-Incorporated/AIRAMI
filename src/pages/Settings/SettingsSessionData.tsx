@@ -1,8 +1,8 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import { Container, Card, Typography, Stack, Button, Collapse } from '@mui/material';
+import { Container, Card, Typography, Stack, Button, Collapse, LinearProgress } from '@mui/material';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { UserSessionContext } from '../../contexts';
+import { SettingsContext, UserSessionContext } from '../../contexts';
 import { LoginButton } from '../../components/Buttons';
 import { messages } from '../../constants';
 
@@ -10,6 +10,7 @@ dayjs.extend(relativeTime);
 
 const SettingsSessionData = () => {
     const { user, controllers } = useContext(UserSessionContext);
+    const { settings } = useContext(SettingsContext);
 
     const expiryTimestamp = useMemo<number>(
         () => (user === null ? 0 : new Date(user.setAt).getTime() + 1000 * user.expiresInSeconds),
@@ -44,61 +45,65 @@ const SettingsSessionData = () => {
 
     const [lastOutput, setLastOutput] = useState('');
 
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     const handleLogout = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
             e.preventDefault();
-            if (user === null) return;
+            if (user?.siteToken === undefined) return;
 
-            controllers.requestLogout(user).then((res) => {
-                if (res === 'aborted') {
-                    setLastOutput('Logout aborted');
-                    return;
-                }
+            setIsLoggingOut(true);
 
-                if (res.success || (!res.generic && res.status === 400)) {
-                    setLastOutput('Logout successful');
-                    return;
-                }
-
-                if (res.generic) {
-                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
-                    return;
-                }
-
-                if (res.status === 401) {
-                    setLastOutput(`Error 401: ${res.data}`);
-                    return;
-                }
-
-                if (res.status === 429) {
-                    setLastOutput(`Rate limited, try again in ${res.data.reset} seconds`);
-                    return;
-                }
-
-                throw res;
-            });
+            controllers
+                .requestLogout({
+                    baseURL: settings.serverUrl,
+                    siteToken: user.siteToken,
+                    rateLimitBypassToken: settings.rateLimitBypassToken,
+                })
+                .then((res) => {
+                    if (res === 'aborted') setLastOutput(messages.aborted);
+                    else if (res.success) setLastOutput('Logout successful');
+                    else if (res.generic) setLastOutput(messages.genericFail(res));
+                    else if (res.status === 401) setLastOutput(messages[401](res.data));
+                    else if (res.status === 429) setLastOutput(messages[429](res.data));
+                    else throw res;
+                })
+                .finally(() => setIsLoggingOut(false));
         },
-        [controllers, user],
+        [controllers, settings.rateLimitBypassToken, settings.serverUrl, user?.siteToken],
     );
 
     const handleRefresh = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
             e.preventDefault();
-            if (user === null) return;
+            if (user?.siteToken === undefined) return;
 
-            controllers.requestRefresh(user).then((res) => {
-                if (res === 'aborted') setLastOutput(messages.aborted);
-                else if (res.success) setLastOutput('Refresh successful');
-                else if (res.generic) setLastOutput(messages.genericFail(res));
-                else if (res.status === 401) setLastOutput(messages[401](res.data));
-                else if (res.status === 403) setLastOutput('Expired/Invalid Refresh Token (403)');
-                else if (res.status === 429) setLastOutput(messages[429](res.data));
-                else if (res.status === 500) setLastOutput(messages[500](res.data));
-                else if (res.status === 501) setLastOutput(messages[501]);
-                else throw res;
-            });
+            setIsRefreshing(true);
+
+            controllers
+                .requestRefresh(
+                    {
+                        baseURL: settings.serverUrl,
+                        siteToken: user.siteToken,
+                        rateLimitBypassToken: settings.rateLimitBypassToken,
+                    },
+                    user.firstSetAt,
+                )
+                .then((res) => {
+                    if (res === 'aborted') setLastOutput(messages.aborted);
+                    else if (res.success) setLastOutput('Refresh Successful');
+                    else if (res.generic) setLastOutput(messages.genericFail(res));
+                    else if (res.status === 401) setLastOutput(messages[401](res.data));
+                    else if (res.status === 403) setLastOutput('Expired or Invalid Refresh Token (403)');
+                    else if (res.status === 429) setLastOutput(messages[429](res.data));
+                    else if (res.status === 500) setLastOutput(messages[500](res.data));
+                    else if (res.status === 501) setLastOutput(messages[501]);
+                    else throw res;
+                })
+                .finally(() => setIsRefreshing(false));
         },
-        [controllers, user],
+        [controllers, settings.rateLimitBypassToken, settings.serverUrl, user?.firstSetAt, user?.siteToken],
     );
 
     return (
@@ -125,14 +130,40 @@ const SettingsSessionData = () => {
                     </Stack>
                 ) : (
                     <Stack direction="row" spacing={2} sx={{ mt: 1 }} justifyContent="flex-end">
-                        <Button variant="outlined" color="info" onClick={handleRefresh}>
+                        <Button
+                            variant="outlined"
+                            color="info"
+                            onClick={handleRefresh}
+                            disabled={isLoggingOut || isRefreshing}
+                        >
                             Refresh
                         </Button>
-                        <Button variant="outlined" color="warning" onClick={handleLogout}>
+                        <Button
+                            variant="outlined"
+                            color="warning"
+                            onClick={handleLogout}
+                            disabled={isLoggingOut || isRefreshing}
+                        >
                             Logout
                         </Button>
                     </Stack>
                 )}
+                <Collapse in={isLoggingOut}>
+                    <Stack>
+                        <Typography color="gray" gutterBottom>
+                            Logging Out
+                        </Typography>
+                        <LinearProgress />
+                    </Stack>
+                </Collapse>
+                <Collapse in={isRefreshing}>
+                    <Stack>
+                        <Typography color="gray" gutterBottom>
+                            Refreshing
+                        </Typography>
+                        <LinearProgress />
+                    </Stack>
+                </Collapse>
                 <Collapse in={lastOutput !== ''}>
                     <Typography color="gray">{lastOutput}</Typography>
                 </Collapse>

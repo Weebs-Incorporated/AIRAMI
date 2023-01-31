@@ -154,9 +154,7 @@ export async function requestRefresh(
 
 export async function requestLogout(
     props: BaseRequestProps<true, true>,
-): Promise<
-    ServerResponse<Responsify<void, 200>, Responsify<void, 400> | Responsify<string, 401> | RateLimitedResponse>
-> {
+): Promise<ServerResponse<Responsify<void, 200 | 403>, Responsify<string, 401> | RateLimitedResponse>> {
     const config = makeRequestConfig(props, 'GET', '/logout');
 
     try {
@@ -168,9 +166,10 @@ export async function requestLogout(
         const rateLimit = handleRateLimited(error.response);
         if (rateLimit) return rateLimit;
 
-        if (error.response.status === 400) {
+        if (error.response.status === 403) {
+            console.warn('GET /logout returned status code 403, asserting that logout was successful!');
             return {
-                success: false,
+                success: true,
                 generic: false,
                 status: error.response.status,
                 data: undefined,
@@ -268,7 +267,10 @@ export async function patchUser(
 ): Promise<
     ServerResponse<
         Responsify<void, 200 | 204>,
-        Responsify<string, 401 | 403> | Responsify<void, 404 | 501> | RateLimitedResponse
+        | Responsify<string, 401>
+        | Responsify<string | undefined, 403>
+        | Responsify<void, 404 | 501>
+        | RateLimitedResponse
     >
 > {
     const config = makeRequestConfig<{ newPermissions: UserPermissions }>(props, 'PATCH', `/users/${id}`, {
@@ -299,7 +301,7 @@ export async function patchUser(
                 success: false,
                 generic: false,
                 status: error.response.status,
-                data: error.response.data,
+                data: error.response.data === 'Forbidden' ? undefined : error.response.data,
             };
         }
 

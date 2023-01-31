@@ -37,6 +37,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
 
 import eyes from './eyes.png';
+import { messages } from '../../constants';
 
 dayjs.extend(relativeTime);
 
@@ -46,6 +47,7 @@ export interface ProfilePageProps {
 
 const ProfilePage = ({ user }: ProfilePageProps) => {
     const { user: loggedInUser, controllers } = useContext(UserSessionContext);
+    const { settings } = useContext(SettingsContext);
     const permissions = useMemo(
         () =>
             splitBitField(user.permissions).sort(
@@ -74,6 +76,8 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
         ) {
             return <></>;
         }
+
+        console.log('re');
 
         return (
             <>
@@ -105,6 +109,8 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
             </>
         );
     }, [controllers, isSelf, loggedInUser, permissionElementOpen, user]);
+
+    useEffect(() => console.log(user.permissions), [user]);
 
     const submissionElement = useMemo(() => {
         if (loggedInUser === null || !isSelf) return <></>;
@@ -148,31 +154,22 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
             e.preventDefault();
             if (loggedInUser === null) return;
 
-            controllers.requestLogout(loggedInUser).then((res) => {
-                if (res === 'aborted') {
-                    setLogoutResponse('Logout aborted');
-                    return;
-                }
-
-                if (res.success || (!res.generic && res.status === 400)) {
-                    setLogoutResponse('Logout successful');
-                    return;
-                }
-
-                if (res.generic) {
-                    setLogoutResponse(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
-                    return;
-                }
-
-                if (res.status === 401) {
-                    setLogoutResponse(`Error 401: ${res.data}`);
-                    return;
-                }
-
-                setLogoutResponse(`Rate limited, try again in ${res.data.reset} seconds`);
-            });
+            controllers
+                .requestLogout({
+                    baseURL: settings.serverUrl,
+                    siteToken: loggedInUser.siteToken,
+                    rateLimitBypassToken: settings.rateLimitBypassToken,
+                })
+                .then((res) => {
+                    if (res === 'aborted') setLogoutResponse(messages.aborted);
+                    else if (res.success) setLogoutResponse('Logout Successful');
+                    else if (res.generic) setLogoutResponse(messages.genericFail(res));
+                    else if (res.status === 401) setLogoutResponse(messages[401](res.data));
+                    else if (res.status === 429) setLogoutResponse(messages[429](res.data));
+                    else throw res;
+                });
         },
-        [controllers, loggedInUser],
+        [controllers, loggedInUser, settings.rateLimitBypassToken, settings.serverUrl],
     );
 
     return (
@@ -327,6 +324,13 @@ const ProfilePageWrapper = () => {
     const [error, setError] = useState<string>();
 
     useEffect(() => {
+        if (loggedInUser === null) return;
+        if (queriedUser?._id !== loggedInUser?.userData._id) return;
+
+        setQueriedUser({ ...loggedInUser?.userData });
+    }, [loggedInUser, queriedUser?._id]);
+
+    useEffect(() => {
         if (id === undefined || (queriedUser !== null && queriedUser._id === id)) return;
 
         const controller = new AbortController();
@@ -340,48 +344,29 @@ const ProfilePageWrapper = () => {
             },
             id,
         ).then((res) => {
-            if (res === 'aborted') {
-                setError('Profile data fetching was aborted.');
-                return;
-            }
-            if (res.success) {
+            if (res === 'aborted') setError(messages.aborted);
+            else if (res.success) {
                 setError(undefined);
                 setQueriedUser(res.data);
-                return;
-            }
-
-            if (res.generic) {
-                setError(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
-                return;
-            }
-
-            if (res.status === 401) {
-                setError('Invalid credentials, logging out is recommended.');
-                return;
-            }
-
-            if (res.status === 404) {
-                setError('User not found.');
-                return;
-            }
-
-            if (res.status === 429) {
-                setError(`Rate limited, try again in ${res.data.reset} seconds.`);
-                return;
-            }
-
-            if (res.status === 501) {
-                setError('User database not enabled.');
-                return;
-            }
-
-            throw res;
+            } else if (res.generic) setError(messages.genericFail(res));
+            else if (res.status === 401) setError(messages[401](res.data));
+            else if (res.status === 404) setError('User Not Found');
+            else if (res.status === 429) setError(messages[429](res.data));
+            else if (res.status === 501) setError(messages[501]);
+            else throw res;
         });
 
         return () => {
             controller.abort();
         };
-    }, [id, loggedInUser?.siteToken, queriedUser, settings.rateLimitBypassToken, settings.serverUrl]);
+    }, [
+        id,
+        loggedInUser?.siteToken,
+        loggedInUser?.userData,
+        queriedUser,
+        settings.rateLimitBypassToken,
+        settings.serverUrl,
+    ]);
 
     if (id === undefined) {
         return (

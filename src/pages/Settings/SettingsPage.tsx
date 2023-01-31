@@ -9,6 +9,7 @@ import Footer from '../../components/Footer';
 import { Page } from '../Page.styled';
 import { HomeButton } from '../../components/Buttons';
 import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
+import { messages } from '../../constants';
 
 type ChangeCallback<T extends keyof Settings> = (key: T) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 
@@ -77,23 +78,21 @@ const SettingsPage = () => {
             rateLimitBypassToken: settings.rateLimitBypassToken,
             siteToken: undefined,
         }).then((res) => {
-            if (res === 'aborted') {
-                setTestApiUrlState('available');
-            } else if (res.success) {
-                setTestApiUrlState('success');
-            } else if (res.generic) {
+            if (res === 'aborted') setTestApiUrlState('available');
+            else if (res.success) setTestApiUrlState('success');
+            else if (res.generic) {
                 setTestApiUrlTitles({
                     ...testApiUrlTitles,
-                    fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
+                    fail: messages.genericFail(res),
                 });
                 setTestApiUrlState('fail');
             } else if (res.status === 429) {
                 setTestApiUrlTitles({
                     ...testApiUrlTitles,
-                    fail: `Rate limited, try again in ${res.data.reset} seconds`,
+                    fail: messages[429](res.data),
                 });
                 setTestApiUrlState('fail');
-            }
+            } else throw res;
         });
 
         return () => {
@@ -112,23 +111,21 @@ const SettingsPage = () => {
             rateLimitBypassToken: settings.rateLimitBypassToken,
             siteToken: undefined,
         }).then((res) => {
-            if (res === 'aborted') {
-                setTestRateLimitState('available');
-            } else if (res.success) {
-                setTestRateLimitState('success');
-            } else if (res.generic) {
+            if (res === 'aborted') setTestRateLimitState('available');
+            else if (res.success) setTestRateLimitState('success');
+            else if (res.generic) {
                 setTestRateLimitTitles({
                     ...testRateLimitTitles,
-                    fail: `Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`,
+                    fail: messages.genericFail(res),
                 });
                 setTestRateLimitState('fail');
-            } else {
+            } else if (res.status === 200) {
                 setTestRateLimitTitles({
                     ...testRateLimitTitles,
                     fail: res.data,
                 });
                 setTestRateLimitState('fail');
-            }
+            } else throw res;
         });
 
         return () => {
