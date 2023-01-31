@@ -1,3 +1,4 @@
-export * as PostAttributes from './Attributes';
+export * from './Attributes';
+export * from './Properties';
 export * from './Post';
 export * from './PostStatus';

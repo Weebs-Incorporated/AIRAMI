@@ -1,10 +1,10 @@
-import { AIMS } from '../types';
+import { UserPermissions, User, ClientFacingUser } from '../types';
 
-export const permissionsDisplayOrder: AIMS.UserPermissions[] = [
-    AIMS.UserPermissions.Owner,
-    AIMS.UserPermissions.AssignPermissions,
-    AIMS.UserPermissions.Audit,
-    AIMS.UserPermissions.Upload,
+export const permissionsDisplayOrder: UserPermissions[] = [
+    UserPermissions.Owner,
+    UserPermissions.AssignPermissions,
+    UserPermissions.Audit,
+    UserPermissions.Upload,
 ];
 
 /**
@@ -28,8 +28,8 @@ export const permissionsDisplayOrder: AIMS.UserPermissions[] = [
  * @see https://github.com/Weebs-Incorporated/AIMS/blob/main/src/helpers/userPermissionHelpers.ts
  */
 export function hasPermission(
-    permissionSet: AIMS.User | AIMS.ClientFacingUser | AIMS.UserPermissions,
-    targetPermissions: AIMS.UserPermissions,
+    permissionSet: User | ClientFacingUser | UserPermissions,
+    targetPermissions: UserPermissions,
 ): boolean {
     if (typeof permissionSet === 'number') {
         return (permissionSet & targetPermissions) === targetPermissions;
@@ -47,8 +47,8 @@ export function hasPermission(
  * @see https://github.com/Weebs-Incorporated/AIMS/blob/main/src/helpers/userPermissionHelpers.ts
  */
 export function hasOneOfPermissions(
-    permissionSet: AIMS.User | AIMS.ClientFacingUser | AIMS.UserPermissions,
-    ...targetPermissions: AIMS.UserPermissions[]
+    permissionSet: User | ClientFacingUser | UserPermissions,
+    ...targetPermissions: UserPermissions[]
 ): boolean {
     for (const permission of targetPermissions) {
         if (hasPermission(permissionSet, permission)) return true;
@@ -56,10 +56,10 @@ export function hasOneOfPermissions(
     return false;
 }
 
-export const permissionDescriptionsMap: Record<AIMS.UserPermissions, string> = {
-    [AIMS.UserPermissions.AssignPermissions]: 'Change permissions of themselves and others.',
-    [AIMS.UserPermissions.Audit]: 'Modify post attributes and accept/deny/withdraw posts.',
-    [AIMS.UserPermissions.None]: '',
-    [AIMS.UserPermissions.Owner]: 'Give/remove the AssignPermissions permission to other users, and view IPs.',
-    [AIMS.UserPermissions.Upload]: 'Submit posts (to be audited).',
+export const permissionDescriptionsMap: Record<UserPermissions, string> = {
+    [UserPermissions.AssignPermissions]: 'Change permissions of themselves and others.',
+    [UserPermissions.Audit]: 'Modify post attributes and accept/deny/withdraw posts.',
+    [UserPermissions.None]: '',
+    [UserPermissions.Owner]: 'Give/remove the AssignPermissions permission to other users, and view IPs.',
+    [UserPermissions.Upload]: 'Submit posts (to be audited).',
 };

@@ -7,7 +7,10 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CodeIcon from '@mui/icons-material/Code';
+import ListIcon from '@mui/icons-material/List';
 import ProfilePicture from '../ProfilePicture/ProfilePicture';
+import { hasOneOfPermissions } from '../../helpers';
+import { UserPermissions } from '../../types/AIMS';
 
 const Footer = (props?: PaperProps) => {
     const { settings } = useContext(SettingsContext);
@@ -40,6 +43,20 @@ const Footer = (props?: PaperProps) => {
                             type="internal"
                         />
                     )}
+                    {user !== null &&
+                        hasOneOfPermissions(
+                            user.userData,
+                            UserPermissions.Owner,
+                            UserPermissions.AssignPermissions,
+                            UserPermissions.Audit,
+                        ) && (
+                            <FooterItem
+                                href="/submissions"
+                                icon={<ListIcon color="disabled" />}
+                                label="Submissions"
+                                type="internal"
+                            />
+                        )}
                     <FooterItem
                         href="/settings"
                         icon={<SettingsIcon color="disabled" />}

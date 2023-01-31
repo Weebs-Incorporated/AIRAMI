@@ -37,6 +37,10 @@ export function makeRequestConfig<T = never>(
     return conf;
 }
 
+/**
+ * Checks whether the response is a rate limited error esponse. If it is then this will also create an object out of
+ * it's relevant headers.
+ */
 export function handleRateLimited(res: AxiosResponse): FullResponsifyFail<RateLimited, 429> | false {
     if (res.status !== 429) return false;
 
@@ -53,6 +57,7 @@ export function handleRateLimited(res: AxiosResponse): FullResponsifyFail<RateLi
     };
 }
 
+/** Creates an object out of an Axios response from a failed request.  */
 export function genericFailResponse(res: AxiosResponse): GenericFailResponse {
     return {
         success: false,
@@ -62,6 +67,7 @@ export function genericFailResponse(res: AxiosResponse): GenericFailResponse {
     };
 }
 
+/** Creates an object out of an Axios error or otherwise unknown response. */
 export function unknownFailResponse(res: unknown): GenericFailResponse | 'aborted' {
     if (res instanceof CanceledError) return 'aborted';
 

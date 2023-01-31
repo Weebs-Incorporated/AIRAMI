@@ -15,6 +15,6 @@ export enum UserPermissions {
     /** Submit posts (to be audited). */
     Upload = 1 << 2,
 
-    /** Give/remove the {@link AssignPermissions} permission to other users, and view IPs. */
+    /** Give/remove the `AssignPermissions` permission to other users, and view IPs. */
     Owner = 1 << 3,
 }

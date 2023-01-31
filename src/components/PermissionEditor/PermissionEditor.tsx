@@ -17,26 +17,26 @@ import {
     Typography,
 } from '@mui/material';
 import { SettingsContext, UserSession } from '../../contexts';
-import { AIMS } from '../../types';
 import { hasPermission, permissionDescriptionsMap } from '../../helpers';
 import { aims } from '../../api';
+import { ClientFacingUser, UserPermissions } from '../../types';
 
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 export interface PermissionEditorProps {
-    targetUser: AIMS.ClientFacingUser;
+    targetUser: ClientFacingUser;
     loggedInUser: UserSession;
     onClose: () => void;
     open: boolean;
-    onPermissionsUpdate: (newPermissions: AIMS.UserPermissions) => void;
+    onPermissionsUpdate: (newPermissions: UserPermissions) => void;
 }
 
-const relevantPermissions: AIMS.UserPermissions[] = [
-    AIMS.UserPermissions.AssignPermissions,
-    AIMS.UserPermissions.Audit,
-    AIMS.UserPermissions.Upload,
+const relevantPermissions: UserPermissions[] = [
+    UserPermissions.AssignPermissions,
+    UserPermissions.Audit,
+    UserPermissions.Upload,
 ];
 
 const PermissionEditor = (props: PermissionEditorProps) => {
@@ -58,7 +58,7 @@ const PermissionEditor = (props: PermissionEditorProps) => {
     useEffect(() => setSaveOutput(['', 'success']), [newPermissions]);
 
     const handleCheck = useCallback(
-        (permission: AIMS.UserPermissions) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        (permission: UserPermissions) => (e: React.ChangeEvent<HTMLInputElement>) => {
             if (isSaving) return;
             if (e.target.checked) setNewPermissions(newPermissions | permission);
             else setNewPermissions(newPermissions ^ permission);
@@ -143,7 +143,7 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                                         />
                                     }
                                     componentsProps={{ typography: { width: '100%' } }}
-                                    label={<ListItemButton>{AIMS.UserPermissions[permission]}</ListItemButton>}
+                                    label={<ListItemButton>{UserPermissions[permission]}</ListItemButton>}
                                 />
                                 <FormLabel>
                                     <Typography color="gray">{permissionDescriptionsMap[permission]}</Typography>

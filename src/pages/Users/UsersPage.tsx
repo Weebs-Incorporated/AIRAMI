@@ -18,12 +18,13 @@ import Footer from '../../components/Footer';
 import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
 import { SettingsContext, UserSession, UserSessionContext } from '../../contexts';
 import { hasOneOfPermissions, hasPermission } from '../../helpers';
-import { AIMS } from '../../types';
+import UserRow from './UserRow';
+import { messages } from '../../constants';
+import { ClientFacingUser, UserPermissions } from '../../types';
 import { Page } from '../Page.styled';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import UserRow from './UserRow';
 export interface UsersPageProps {
     loggedInUser: UserSession;
 }
@@ -36,51 +37,48 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
     const [perPage, setPerPage] = useState(20);
     const [totalUserCount, setTotalUserCount] = useState(0);
     const [error, setError] = useState('');
-    const [users, setUsers] = useState<AIMS.ClientFacingUser[]>();
+    const [users, setUsers] = useState<ClientFacingUser[]>();
     const [isRevealingIps, setIsRevealingIps] = useState(false);
 
     const canShowIps = useMemo(
-        () => hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner),
+        () => hasPermission(loggedInUser.userData, UserPermissions.Owner),
         [loggedInUser.userData],
     );
 
     useEffect(() => {
         const controller = new AbortController();
 
-        aims.getUsers(
+        aims.getAllUsers(
             {
                 baseURL: settings.serverUrl,
                 siteToken: loggedInUser.siteToken,
                 controller,
                 rateLimitBypassToken: settings.rateLimitBypassToken,
             },
-            { page, perPage },
-            null,
+            page,
+            perPage,
         ).then((res) => {
             if (res === 'aborted') {
-                setError('User fetching was aborted.');
+                setError(messages.aborted);
             } else if (res.success) {
                 setUsers(res.data.users);
-                setTotalUserCount(res.data.pagination.itemCount);
+                setTotalUserCount(res.data.totalItems);
                 setError('');
             } else if (res.generic) {
-                setError(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
+                setError(messages.genericFail(res));
             } else {
                 switch (res.status) {
                     case 401:
-                        setError(`Error 401: ${res.data}`);
+                        setError(messages[res.status](res.data));
                         break;
                     case 403:
-                        setError('Missing permissions to fetch users.');
-                        break;
-                    case 404:
-                        setError('Fetching failed, you account may have been deleted.');
+                        setError(messages[403](res.data));
                         break;
                     case 429:
-                        setError(`Rate limited, try again in ${res.data.reset} seconds.`);
+                        setError(messages[429](res.data));
                         break;
                     case 501:
-                        setError('User database is not enabled.');
+                        setError(messages[501]);
                         break;
                     default:
                         throw res;
@@ -194,7 +192,7 @@ const UsersPageWrapper = () => {
 
     if (
         user === null ||
-        !hasOneOfPermissions(user.userData, AIMS.UserPermissions.Owner, AIMS.UserPermissions.AssignPermissions)
+        !hasOneOfPermissions(user.userData, UserPermissions.Owner, UserPermissions.AssignPermissions)
     ) {
         return (
             <>

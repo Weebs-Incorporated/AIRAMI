@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Grid, GridProps, ListItemButton, ListItemIcon } from '@mui/material';
-import { AIMS } from '../../types';
 import { permissionsDisplayOrder, splitBitField } from '../../helpers';
+import { ClientFacingUser, User, UserPermissions } from '../../types';
 
 import StarIcon from '@mui/icons-material/Star';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -9,28 +9,28 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import CreateIcon from '@mui/icons-material/Create';
 
 export interface UserBadgesProps extends GridProps {
-    user: AIMS.ClientFacingUser | AIMS.User;
+    user: ClientFacingUser | User;
 }
 
-export const badgeIconMap: Record<AIMS.UserPermissions, { label: string; title: string; icon: ReactNode }> = {
-    [AIMS.UserPermissions.AssignPermissions]: {
+export const badgeIconMap: Record<UserPermissions, { label: string; title: string; icon: ReactNode }> = {
+    [UserPermissions.AssignPermissions]: {
         label: 'Site Admin',
         icon: <SecurityIcon color="secondary" />,
         title: 'This user can change permissions.',
     },
 
-    [AIMS.UserPermissions.Audit]: {
+    [UserPermissions.Audit]: {
         label: 'Post Auditor',
         icon: <GavelIcon color="info" />,
         title: 'This user reviews and moderates posts.',
     },
-    [AIMS.UserPermissions.None]: { label: '', icon: <></>, title: '' },
-    [AIMS.UserPermissions.Owner]: {
+    [UserPermissions.None]: { label: '', icon: <></>, title: '' },
+    [UserPermissions.Owner]: {
         label: 'Site Owner',
         icon: <StarIcon htmlColor="gold" />,
         title: 'This user owns the site.',
     },
-    [AIMS.UserPermissions.Upload]: {
+    [UserPermissions.Upload]: {
         label: 'Uploader',
         icon: <CreateIcon color="success" />,
         title: 'This user can make post submissions to the site.',

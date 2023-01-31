@@ -10,7 +10,7 @@ export interface SingleSelectorProps {
     descMap: DescMap<number>;
 }
 
-const SingleSelector = (props: SingleSelectorProps) => {
+export const SingleSelector = (props: SingleSelectorProps) => {
     const { value, setValue, label, optionsEnum, descMap } = props;
 
     const handleChange = useCallback(
@@ -48,5 +48,3 @@ const SingleSelector = (props: SingleSelectorProps) => {
         </FormControl>
     );
 };
-
-export default SingleSelector;

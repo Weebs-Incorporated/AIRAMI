@@ -71,7 +71,7 @@ const SettingsPage = () => {
 
         const controller = new AbortController();
 
-        aims.getRoot({
+        aims.postRoot({
             baseURL: settings.serverUrl,
             controller,
             rateLimitBypassToken: settings.rateLimitBypassToken,

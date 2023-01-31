@@ -1,7 +1,7 @@
 import { aims } from '../../api';
-import { AIMS } from '../../types';
+import { LoginResponse, UserPermissions } from '../../types';
 
-export interface UserSession extends AIMS.LoginResponse {
+export interface UserSession extends LoginResponse<'login' | 'register' | 'refresh'> {
     setAt: string;
     firstSetAt: string;
 }
@@ -23,7 +23,7 @@ export interface UserSessionControllers {
     ): ReturnType<(typeof aims)['requestLogout']>;
 
     /** Updates this user's client-side permissions, call this after a successful patch request.  */
-    updatePermissions(newPermissions: AIMS.UserPermissions): void;
+    updatePermissions(newPermissions: UserPermissions): void;
 }
 
 export interface IUserSessionContext<TRequired extends boolean = false> {

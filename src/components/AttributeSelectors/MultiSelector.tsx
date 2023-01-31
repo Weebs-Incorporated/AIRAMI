@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import {
     Box,
     Chip,
@@ -9,7 +10,6 @@ import {
     Stack,
     Typography,
 } from '@mui/material';
-import React, { useCallback, useMemo } from 'react';
 import { splitBitField } from '../../helpers';
 import { DescMap } from './attributeDescriptionMap';
 
@@ -21,7 +21,7 @@ export interface MultiSelectorProps {
     descMap: DescMap<number>;
 }
 
-const MultiSelector = (props: MultiSelectorProps) => {
+export const MultiSelector = (props: MultiSelectorProps) => {
     const { value, setValue, label, optionsEnum, descMap } = props;
 
     const handleChange = useCallback(
@@ -77,5 +77,3 @@ const MultiSelector = (props: MultiSelectorProps) => {
         </FormControl>
     );
 };
-
-export default MultiSelector;

@@ -95,6 +95,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
 
     const [doneInitialRefresh, setDoneInitialRefresh] = useState(false);
 
+    // fetching user data on page load
     useEffect(() => {
         if (doneInitialRefresh || user === null) return;
 
@@ -125,6 +126,7 @@ const UserSessionContextProvider = ({ children }: { children: ReactNode }) => {
         };
     }, [doneInitialRefresh, requestRefresh, settings.rateLimitBypassToken, settings.serverUrl, user]);
 
+    // scheduling a call to /refresh in the future so the session doesn't expire
     useEffect(() => {
         if (user === null) return;
 

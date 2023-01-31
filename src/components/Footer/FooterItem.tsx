@@ -10,7 +10,7 @@ export interface FooterItemProps {
 }
 
 const FooterItem = ({ href, icon, label, type }: FooterItemProps) => (
-    <Grid item xs={4} sm={2}>
+    <Grid item xs={6} sm={3} md={2}>
         {type === 'external' ? (
             <ExternalLink
                 href={href}

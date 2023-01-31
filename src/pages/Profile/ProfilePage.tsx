@@ -15,7 +15,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { HomeButton } from '../../components/Buttons';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import Footer from '../../components/Footer';
-import ProfilePicture from '../../components/ProfilePicture/ProfilePicture';
+import ProfilePicture from '../../components/ProfilePicture';
 import {
     hasOneOfPermissions,
     hasPermission,
@@ -23,11 +23,11 @@ import {
     permissionsDisplayOrder,
     splitBitField,
 } from '../../helpers';
-import { AIMS } from '../../types';
 import { useParams } from 'react-router-dom';
-import { aims } from '../../api';
 import { ExpandMore, UserBadges } from '../../components/Icons';
-import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
+import SiteBreadcrumbs from '../../components/SiteBreadcrumbs';
+import { getUser } from '../../api/aims';
+import { ClientFacingUser, UserPermissions, User } from '../../types';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -37,12 +37,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
 
 import eyes from './eyes.png';
-import SubmissionCreator from '../../components/SubmissionCreator/SubmissionCreator';
 
 dayjs.extend(relativeTime);
 
 export interface ProfilePageProps {
-    user: AIMS.ClientFacingUser;
+    user: ClientFacingUser;
 }
 
 const ProfilePage = ({ user }: ProfilePageProps) => {
@@ -58,27 +57,20 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
     const isSelf = useMemo(() => loggedInUser?.userData._id === user._id, [loggedInUser?.userData._id, user._id]);
 
     const canViewIp = useMemo(() => {
-        return loggedInUser !== null && (isSelf || hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner));
+        return loggedInUser !== null && (isSelf || hasPermission(loggedInUser.userData, UserPermissions.Owner));
     }, [isSelf, loggedInUser]);
 
     const [permissionElementOpen, setPermissionElementOpen] = useState(false);
-    const [submissionElementOpen, setSubmissionElementOpen] = useState(false);
 
     const permissionElement = useMemo(() => {
         if (loggedInUser === null) return <></>;
-        if (
-            !hasOneOfPermissions(
-                loggedInUser.userData,
-                AIMS.UserPermissions.Owner,
-                AIMS.UserPermissions.AssignPermissions,
-            )
-        ) {
+        if (!hasOneOfPermissions(loggedInUser.userData, UserPermissions.Owner, UserPermissions.AssignPermissions)) {
             return <></>;
         }
 
         if (
-            hasPermission(user, AIMS.UserPermissions.Owner) &&
-            !hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner)
+            hasPermission(user, UserPermissions.Owner) &&
+            !hasPermission(loggedInUser.userData, UserPermissions.Owner)
         ) {
             return <></>;
         }
@@ -120,9 +112,9 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
         if (
             !hasOneOfPermissions(
                 loggedInUser.userData,
-                AIMS.UserPermissions.Owner,
-                AIMS.UserPermissions.AssignPermissions,
-                AIMS.UserPermissions.Upload,
+                UserPermissions.Owner,
+                UserPermissions.AssignPermissions,
+                UserPermissions.Upload,
             )
         ) {
             return <></>;
@@ -135,21 +127,13 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                     startIcon={<AddIcon />}
                     onClick={(e) => {
                         e.preventDefault();
-                        setSubmissionElementOpen(true);
                     }}
                 >
                     New Submission
                 </Button>
-                <SubmissionCreator
-                    loggedInUser={loggedInUser}
-                    open={submissionElementOpen}
-                    onClose={() => {
-                        setSubmissionElementOpen(false);
-                    }}
-                />
             </>
         );
-    }, [isSelf, loggedInUser, submissionElementOpen]);
+    }, [isSelf, loggedInUser]);
 
     const [isViewingPermissions, setIsViewingPermissions] = useState(false);
 
@@ -283,7 +267,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                                         <Grid item key={permission}>
                                             <Chip
                                                 title={permissionDescriptionsMap[permission]}
-                                                label={AIMS.UserPermissions[permission]}
+                                                label={UserPermissions[permission]}
                                                 component="span"
                                             />
                                         </Grid>
@@ -336,7 +320,7 @@ const ProfilePageWrapper = () => {
     const { settings } = useContext(SettingsContext);
     const { id } = useParams();
 
-    const [queriedUser, setQueriedUser] = useState<AIMS.ClientFacingUser | AIMS.User | null>(
+    const [queriedUser, setQueriedUser] = useState<ClientFacingUser | User | null>(
         id !== undefined && id === loggedInUser?.userData._id ? loggedInUser.userData : null,
     );
 
@@ -347,7 +331,7 @@ const ProfilePageWrapper = () => {
 
         const controller = new AbortController();
 
-        aims.getUser(
+        getUser(
             {
                 baseURL: settings.serverUrl,
                 siteToken: loggedInUser?.siteToken,

@@ -1,24 +1,23 @@
 import { useMemo, useState } from 'react';
-import { TableRow, TableCell, Typography, Button, Link } from '@mui/material';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { TableRow, TableCell, Typography, Button, Link } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import { UserBadges } from '../../components/Icons';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
 import ProfilePicture from '../../components/ProfilePicture/ProfilePicture';
 import { UserSession } from '../../contexts';
 import { hasPermission } from '../../helpers';
-import { AIMS } from '../../types';
-
-import EditIcon from '@mui/icons-material/Edit';
 import { InternalLink } from '../../components/Links';
+import { ClientFacingUser, UserPermissions } from '../../types';
 
 dayjs.extend(relativeTime);
 
 export interface UserRowProps {
-    user: AIMS.ClientFacingUser;
+    user: ClientFacingUser;
     showIp: boolean;
     loggedInUser: UserSession;
-    onPermissionUpdate: (newPermissions: AIMS.UserPermissions, isSelf: boolean) => void;
+    onPermissionUpdate: (newPermissions: UserPermissions, isSelf: boolean) => void;
 }
 
 const UserRow = (props: UserRowProps) => {
@@ -30,8 +29,8 @@ const UserRow = (props: UserRowProps) => {
 
     const permissionElement = useMemo(() => {
         if (
-            !hasPermission(loggedInUser.userData, AIMS.UserPermissions.Owner) &&
-            hasPermission(user, AIMS.UserPermissions.Owner)
+            !hasPermission(loggedInUser.userData, UserPermissions.Owner) &&
+            hasPermission(user, UserPermissions.Owner)
         ) {
             return <></>;
         }

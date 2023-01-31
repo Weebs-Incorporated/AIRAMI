@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { UserSessionContext } from '../../contexts';
 import { LoginButton } from '../../components/Buttons';
+import { messages } from '../../constants';
 
 dayjs.extend(relativeTime);
 
@@ -86,42 +87,15 @@ const SettingsSessionData = () => {
             if (user === null) return;
 
             controllers.requestRefresh(user).then((res) => {
-                if (res === 'aborted') {
-                    setLastOutput('Refresh aborted');
-                    return;
-                }
-
-                if (res.success) {
-                    setLastOutput('Refresh successful');
-                    return;
-                }
-
-                if (res.generic) {
-                    setLastOutput(`Error ${res.status}${res.statusText !== '' ? `: ${res.statusText}` : ''}`);
-                    return;
-                }
-
-                if (res.status === 400 || res.status === 404) {
-                    setLastOutput('Refresh failed');
-                    return;
-                }
-
-                if (res.status === 401 || res.status === 500) {
-                    setLastOutput(`Error 401: ${res.data}`);
-                    return;
-                }
-
-                if (res.status === 429) {
-                    setLastOutput(`Rate limited, try again in ${res.data.reset} seconds`);
-                    return;
-                }
-
-                if (res.status === 501) {
-                    setLastOutput('Refreshing has been disabled');
-                    return;
-                }
-
-                throw res;
+                if (res === 'aborted') setLastOutput(messages.aborted);
+                else if (res.success) setLastOutput('Refresh successful');
+                else if (res.generic) setLastOutput(messages.genericFail(res));
+                else if (res.status === 401) setLastOutput(messages[401](res.data));
+                else if (res.status === 403) setLastOutput('Expired/Invalid Refresh Token (403)');
+                else if (res.status === 429) setLastOutput(messages[429](res.data));
+                else if (res.status === 500) setLastOutput(messages[500](res.data));
+                else if (res.status === 501) setLastOutput(messages[501]);
+                else throw res;
             });
         },
         [controllers, user],

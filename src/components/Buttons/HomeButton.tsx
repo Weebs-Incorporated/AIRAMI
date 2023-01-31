@@ -1,6 +1,6 @@
 import { Button, ButtonProps } from '@mui/material';
-import { InternalLink } from '../Links';
 import HomeIcon from '@mui/icons-material/Home';
+import { InternalLink } from '../Links';
 
 export const HomeButton = (props?: ButtonProps) => (
     <InternalLink to="/">

@@ -1,28 +1,33 @@
-export enum Races {
-    Human = 1 << 0,
+import { ValuesOf } from '../../Utility';
+
+export const Races = {
+    Human: 1 << 0,
 
     /**
      * Blanket term for any animal-like features.
      *
      * Use this alongside other races, and by itself you cannot distinguish.
      */
-    Kemonomimi = 1 << 1,
+    Kemonomimi: 1 << 1,
 
-    Fox = 1 << 2,
+    Fox: 1 << 2,
 
-    Cat = 1 << 3,
+    Cat: 1 << 3,
 
-    Dog = 1 << 4,
+    Dog: 1 << 4,
 
-    Raccoon = 1 << 5,
+    Raccoon: 1 << 5,
 
-    Dragon = 1 << 6,
+    Dragon: 1 << 6,
 
-    Elf = 1 << 7,
+    Elf: 1 << 7,
 
-    Lizard = 1 << 8,
+    Lizard: 1 << 8,
 
-    Oni = 1 << 9,
+    Oni: 1 << 9,
 
-    Angel = 1 << 10,
-}
+    Angel: 1 << 10,
+} as const;
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type Races = ValuesOf<typeof Races>;

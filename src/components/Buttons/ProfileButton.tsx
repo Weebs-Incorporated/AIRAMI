@@ -1,10 +1,10 @@
 import { Button, ButtonProps } from '@mui/material';
-import { AIMS } from '../../types';
+import { User } from '../../types';
 import { InternalLink } from '../Links';
-import ProfilePicture from '../ProfilePicture/ProfilePicture';
+import ProfilePicture from '../ProfilePicture';
 
 export interface ProfileButtonProps extends ButtonProps {
-    user: AIMS.User;
+    user: User;
 }
 
 export const ProfileButton = (props: ProfileButtonProps) => {

@@ -1,6 +1,6 @@
 import { User } from '../User';
 
-export interface LoginResponse {
+export interface LoginResponse<T extends 'login' | 'refresh' | 'register'> {
     userData: User;
 
     /** How long until the current {@link siteToken} expires, in seconds. */
@@ -10,5 +10,5 @@ export interface LoginResponse {
     siteToken: string;
 
     /** Typeof operation this was generated from. */
-    type: 'login' | 'refresh' | 'register';
+    type: T;
 }

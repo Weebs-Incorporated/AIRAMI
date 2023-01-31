@@ -1,12 +1,24 @@
 import axios, { isAxiosError } from 'axios';
-import { AIMS, BaseRequestProps, RateLimitedResponse, Responsify, Root, RootResponse, ServerResponse } from '../types';
-import { Post, PostStatus } from '../types/AIMS';
+import {
+    BaseRequestProps,
+    ClientFacingUser,
+    LoginResponse,
+    Post,
+    PostStatus,
+    RateLimitedResponse,
+    Responsify,
+    Root,
+    RootResponse,
+    ServerResponse,
+    User,
+    UserPermissions,
+} from '../types';
 import { makeRequestConfig, unknownFailResponse, handleRateLimited, genericFailResponse } from './helpers';
 
-export async function getRoot(
+export async function postRoot(
     props: BaseRequestProps<true, false>,
 ): Promise<ServerResponse<RootResponse, RateLimitedResponse>> {
-    const config = makeRequestConfig(props, 'GET');
+    const config = makeRequestConfig(props, 'POST');
 
     try {
         const { data } = await axios.request<Root>(config);
@@ -23,7 +35,7 @@ export async function getRoot(
 
 export async function checkRateLimitResponse(
     props: BaseRequestProps<true, false> & { rateLimitBypassToken: string },
-): Promise<ServerResponse<Responsify<void, 200>, Responsify<'Error' | 'Invalid Token', 200>>> {
+): Promise<ServerResponse<Responsify<void, 200>, Responsify<'Invalid Token', 200>>> {
     const config = makeRequestConfig(props, 'GET');
 
     try {
@@ -48,8 +60,8 @@ export async function requestLogin(
     redirectUri: string,
 ): Promise<
     ServerResponse<
-        Responsify<AIMS.LoginResponse, 200>,
-        Responsify<string, 400 | 500> | RateLimitedResponse | Responsify<void, 501>
+        Responsify<LoginResponse<'login' | 'register'>, 200>,
+        Responsify<void, 403 | 501> | RateLimitedResponse | Responsify<string, 500>
     >
 > {
     const config = makeRequestConfig(props, 'POST', '/login');
@@ -60,7 +72,7 @@ export async function requestLogin(
     };
 
     try {
-        const { data } = await axios.request<AIMS.LoginResponse>(config);
+        const { data } = await axios.request<LoginResponse<'login' | 'register'>>(config);
         return { success: true, status: 200, data };
     } catch (error) {
         if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
@@ -68,21 +80,21 @@ export async function requestLogin(
         const rateLimit = handleRateLimited(error.response);
         if (rateLimit) return rateLimit;
 
-        if (error.response.status === 400 || error.response.status === 500) {
-            return {
-                success: false,
-                generic: false,
-                status: error.response.status,
-                data: error.response.statusText,
-            };
-        }
-
-        if (error.response.status === 501) {
+        if (error.response.status === 403 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,
                 status: error.response.status,
                 data: undefined,
+            };
+        }
+
+        if (error.response.status === 500) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data,
             };
         }
 
@@ -94,14 +106,14 @@ export async function requestRefresh(
     props: BaseRequestProps<true, true>,
 ): Promise<
     ServerResponse<
-        Responsify<AIMS.LoginResponse, 200>,
-        Responsify<void, 400 | 404 | 501> | Responsify<string, 401 | 500> | RateLimitedResponse
+        Responsify<LoginResponse<'refresh'>, 200>,
+        Responsify<string, 401 | 500> | Responsify<void, 403 | 501> | RateLimitedResponse
     >
 > {
     const config = makeRequestConfig(props, 'GET', '/refresh');
 
     try {
-        const { data } = await axios.request<AIMS.LoginResponse>(config);
+        const { data } = await axios.request<LoginResponse<'refresh'>>(config);
         return { success: true, status: 200, data };
     } catch (error) {
         if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
@@ -109,21 +121,21 @@ export async function requestRefresh(
         const rateLimit = handleRateLimited(error.response);
         if (rateLimit) return rateLimit;
 
-        if (error.response.status === 400 || error.response.status === 404 || error.response.status === 501) {
-            return {
-                success: false,
-                generic: false,
-                status: error.response.status,
-                data: undefined,
-            };
-        }
-
         if (error.response.status === 401) {
             return {
                 success: false,
                 generic: false,
                 status: error.response.status,
                 data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 403 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
             };
         }
 
@@ -132,48 +144,7 @@ export async function requestRefresh(
                 success: false,
                 generic: false,
                 status: error.response.status,
-                data: error.response.statusText,
-            };
-        }
-
-        return genericFailResponse(error.response);
-    }
-}
-
-export async function requestSelf(
-    props: BaseRequestProps<true, true>,
-): Promise<
-    ServerResponse<
-        Responsify<AIMS.User, 200>,
-        Responsify<string, 401> | Responsify<void, 404 | 501> | RateLimitedResponse
-    >
-> {
-    const config = makeRequestConfig(props, 'GET', '/users/@me');
-
-    try {
-        const { data } = await axios.request<AIMS.User>(config);
-        return { success: true, status: 200, data };
-    } catch (error) {
-        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
-
-        const rateLimit = handleRateLimited(error.response);
-        if (rateLimit) return rateLimit;
-
-        if (error.response.status === 401) {
-            return {
-                success: false,
-                generic: false,
-                status: error.response.status,
-                data: error.response.data['message'],
-            };
-        }
-
-        if (error.response.status === 404 || error.response.status === 501) {
-            return {
-                success: false,
-                generic: false,
-                status: error.response.status,
-                data: undefined,
+                data: error.response.data,
             };
         }
 
@@ -219,19 +190,48 @@ export async function requestLogout(
     }
 }
 
+export async function requestSelf(
+    props: BaseRequestProps<true, true>,
+): Promise<
+    ServerResponse<Responsify<User, 200>, Responsify<string, 401> | RateLimitedResponse | Responsify<void, 501>>
+> {
+    const config = makeRequestConfig(props, 'GET', '/users/@me');
+
+    try {
+        const { data } = await axios.request<User>(config);
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
 export async function getUser(
     props: BaseRequestProps<true, 'optional'>,
     id: string,
 ): Promise<
     ServerResponse<
-        Responsify<AIMS.ClientFacingUser, 200>,
-        Responsify<string, 401> | Responsify<void, 404 | 501> | RateLimitedResponse
+        Responsify<ClientFacingUser, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
     >
 > {
     const config = makeRequestConfig(props, 'GET', `/users/${id}`);
 
     try {
-        const { data } = await axios.request<AIMS.ClientFacingUser>(config);
+        const { data } = await axios.request<ClientFacingUser>(config);
         return { success: true, status: 200, data };
     } catch (error) {
         if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
@@ -248,7 +248,7 @@ export async function getUser(
             };
         }
 
-        if (error.response.status === 404 || error.response.status === 501) {
+        if (error.response.status === 403 || error.response.status === 404 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,
@@ -264,14 +264,14 @@ export async function getUser(
 export async function patchUser(
     props: BaseRequestProps<true, true>,
     id: string,
-    newPermissions: AIMS.UserPermissions,
+    newPermissions: UserPermissions,
 ): Promise<
     ServerResponse<
         Responsify<void, 200 | 204>,
         Responsify<string, 401 | 403> | Responsify<void, 404 | 501> | RateLimitedResponse
     >
 > {
-    const config = makeRequestConfig<{ newPermissions: AIMS.UserPermissions }>(props, 'PATCH', `/users/${id}`, {
+    const config = makeRequestConfig<{ newPermissions: UserPermissions }>(props, 'PATCH', `/users/${id}`, {
         newPermissions,
     });
 
@@ -316,30 +316,24 @@ export async function patchUser(
     }
 }
 
-type GetUsersInput = {
-    pagination: AIMS.PaginationInput;
-    withIds: string[] | null;
+type GetAllUsersOutput = {
+    totalItems: number;
+    users: ClientFacingUser[];
 };
 
-type GetUsersOutput = {
-    users: AIMS.ClientFacingUser[];
-    pagination: AIMS.PaginationResponse;
-};
-
-export async function getUsers(
-    props: BaseRequestProps<true, 'optional'>,
-    pagination: AIMS.PaginationInput,
-    withIds: string[] | null,
+export async function getAllUsers(
+    props: BaseRequestProps<true, true>,
+    page: number,
+    perPage: number,
 ): Promise<
     ServerResponse<
-        Responsify<GetUsersOutput, 200>,
-        Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
+        Responsify<GetAllUsersOutput, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 501> | RateLimitedResponse
     >
 > {
-    const config = makeRequestConfig<GetUsersInput>(props, 'POST', '/users/all', { pagination, withIds });
-
+    const config = makeRequestConfig(props, 'GET', `/users?page=${page}&perPage=${perPage}`);
     try {
-        const { data } = await axios.request<GetUsersOutput>(config);
+        const { data } = await axios.request<GetAllUsersOutput>(config);
 
         return { success: true, status: 200, data };
     } catch (error) {
@@ -357,7 +351,7 @@ export async function getUsers(
             };
         }
 
-        if (error.response.status === 403 || error.response.status === 404 || error.response.status === 501) {
+        if (error.response.status === 403 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,
@@ -370,14 +364,14 @@ export async function getUsers(
     }
 }
 
-export async function getProxyImage(
+export async function getSomeUsers(
     props: BaseRequestProps<true, false>,
-    url: string,
-): Promise<ServerResponse<Responsify<string, 200>, Responsify<void, 400> | RateLimitedResponse>> {
-    const config = makeRequestConfig(props, 'GET', `/image/${encodeURIComponent(url)}`);
+    withIds: string[],
+): Promise<ServerResponse<Responsify<ClientFacingUser[], 200>, RateLimitedResponse | Responsify<void, 501>>> {
+    const config = makeRequestConfig<{ withIds: string[] }>(props, 'POST', '/users', { withIds });
 
     try {
-        const { data } = await axios.request(config);
+        const { data } = await axios.request<ClientFacingUser[]>(config);
 
         return { success: true, status: 200, data };
     } catch (error) {
@@ -386,7 +380,7 @@ export async function getProxyImage(
         const rateLimit = handleRateLimited(error.response);
         if (rateLimit) return rateLimit;
 
-        if (error.response.status === 400) {
+        if (error.response.status === 501) {
             return {
                 success: false,
                 generic: false,
@@ -399,16 +393,66 @@ export async function getProxyImage(
     }
 }
 
-export async function makeSubmission(
+// export async function makeSubmission(
+//     props: BaseRequestProps<true, true>,
+//     post: Partial<Post<PostStatus.InitialAwaitingValidation>> & { url: string },
+// ): Promise<
+//     ServerResponse<Resp
+//onsify<string, 200>, Responsify<string, 401> | Responsify<void, 409 | 501> | RateLimitedResponse>
+// > {
+//     const config = makeRequestConfig(props, 'PUT', '/submissions', post);
+
+//     try {
+//         const { data } = await axios.request<string>(config);
+
+//         return { success: true, status: 200, data };
+//     } catch (error) {
+//         if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+//         const rateLimit = handleRateLimited(error.response);
+//         if (rateLimit) return rateLimit;
+
+//         if (error.response.status === 401) {
+//             return {
+//                 success: false,
+//                 generic: false,
+//                 status: error.response.status,
+//                 data: error.response.data['message'],
+//             };
+//         }
+
+//         if (error.response.status === 409 || error.response.status === 501) {
+//             return {
+//                 success: false,
+//                 generic: false,
+//                 status: error.response.status,
+//                 data: undefined,
+//             };
+//         }
+
+//         return genericFailResponse(error.response);
+//     }
+// }
+
+type GetAllSubmissionsOutput = {
+    totalItems: number;
+    submissions: Post<PostStatus.InitialAwaitingValidation>[];
+};
+
+export async function getAllSubmissions(
     props: BaseRequestProps<true, true>,
-    post: Partial<Post<PostStatus.InitialAwaitingValidation>> & { url: string },
+    page: number,
+    perPage: number,
 ): Promise<
-    ServerResponse<Responsify<string, 200>, Responsify<string, 401> | Responsify<void, 409 | 501> | RateLimitedResponse>
+    ServerResponse<
+        Responsify<GetAllSubmissionsOutput, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 501> | RateLimitedResponse
+    >
 > {
-    const config = makeRequestConfig(props, 'PUT', '/submissions', post);
+    const config = makeRequestConfig(props, 'GET', `/submissions?page=${page}&perPage=${perPage}`);
 
     try {
-        const { data } = await axios.request<string>(config);
+        const { data } = await axios.request<GetAllSubmissionsOutput>(config);
 
         return { success: true, status: 200, data };
     } catch (error) {
@@ -426,7 +470,7 @@ export async function makeSubmission(
             };
         }
 
-        if (error.response.status === 409 || error.response.status === 501) {
+        if (error.response.status === 403 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,

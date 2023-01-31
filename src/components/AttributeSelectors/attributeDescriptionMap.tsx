@@ -1,17 +1,16 @@
 import { ReactNode } from 'react';
 import { Link } from '@mui/material';
-import {
-    ArtStyle,
-    Colours,
-    ExplicitLevel,
-    HairLengths,
-    LightLevel,
-    Outfits,
-    Races,
-    ShotType,
-    Themes,
-} from '../../types/AIMS/Post/Attributes';
 import { ExternalLink } from '../Links';
+
+import { ArtStyle } from '../../types/AIMS/Post/Attributes/ArtStyle';
+import { Colours } from '../../types/AIMS/Post/Attributes/Colours';
+import { ExplicitLevel } from '../../types/AIMS/Post/Attributes/ExplicitLevel';
+import { HairLengths } from '../../types/AIMS/Post/Attributes/HairLengths';
+import { LightLevel } from '../../types/AIMS/Post/Attributes/LightLevel';
+import { Outfits } from '../../types/AIMS/Post/Attributes/Outfits';
+import { Races } from '../../types/AIMS/Post/Attributes/Races';
+import { ShotType } from '../../types/AIMS/Post/Attributes/ShotType';
+import { Themes } from '../../types/AIMS/Post/Attributes/Themes';
 
 export type DescMap<T extends string | number | symbol> = { [k in T]?: ReactNode };
 

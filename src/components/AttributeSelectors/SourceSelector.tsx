@@ -1,11 +1,11 @@
 import { Checkbox, Fade, FormControlLabel, FormGroup, Grid, TextField, Typography } from '@mui/material';
 import { ChangeEvent, SyntheticEvent, useCallback } from 'react';
 import { Post, PostStatus } from '../../types/AIMS';
-import { Source } from '../../types/AIMS/Post/Attributes';
+import { Source } from '../../types/AIMS/Post/Attributes/Source';
 
 export interface SourceSelectorProps {
-    sources: Post<PostStatus.InitialAwaitingValidation>['sources'];
-    setSources: (newSources: Post<PostStatus.InitialAwaitingValidation>['sources']) => void;
+    sources: Post<PostStatus.InitialAwaitingValidation>['attributes']['sources'];
+    setSources: (newSources: Post<PostStatus.InitialAwaitingValidation>['attributes']['sources']) => void;
 }
 
 const sourceOptions = Object.values(Source).filter((e) => typeof e !== 'string') as Source[];
@@ -23,18 +23,26 @@ const sourceExamples: Record<Source, { post: string; account: string }> = {
         post: `https://www.deviantart.com/nachotoast_123/art/some-post-${new Date().getFullYear()}-1234567890`,
         account: 'https://www.deviantart.com/nachotoast_123',
     },
+    [Source.ArtStation]: {
+        post: 'https://www.artstation.com/artwork/abcde',
+        account: 'https://www.artstation.com/nachotoast',
+    },
+    [Source.Weibo]: {
+        post: 'https://www.weibo.com/1234567890/ABCD1234',
+        account: 'https://www.weibo.com/u/1234567890',
+    },
     [Source.Other]: {
-        post: 'ArtStation, Weibo, etc...',
-        account: 'ArtStation, Weibo, etc...',
+        post: 'https://...',
+        account: 'https://...',
     },
 };
 
-const SourceSelector = (props: SourceSelectorProps) => {
+export const SourceSelector = (props: SourceSelectorProps) => {
     const { sources, setSources } = props;
 
     const handleCheck = useCallback(
         (source: Source) => (_e: SyntheticEvent, checked: boolean) => {
-            const newSources: Post<PostStatus.InitialAwaitingValidation>['sources'] = { ...sources };
+            const newSources: Post<PostStatus.InitialAwaitingValidation>['attributes']['sources'] = { ...sources };
 
             if (checked) {
                 newSources[source] = { post: '', account: '' };
@@ -110,5 +118,3 @@ const SourceSelector = (props: SourceSelectorProps) => {
         </Grid>
     );
 };
-
-export default SourceSelector;

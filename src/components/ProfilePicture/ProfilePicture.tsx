@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { DiscordIcon } from '../../images';
-import { AIMS } from '../../types';
+import { ClientFacingUser, User } from '../../types';
 
 export interface ProfilePictureProps {
-    user: AIMS.ClientFacingUser | AIMS.User;
+    user: ClientFacingUser | User | null;
     isSelf?: boolean;
     size?: number;
     style?: React.CSSProperties;
@@ -14,7 +14,7 @@ const ProfilePicture = (props: ProfilePictureProps) => {
 
     const [errored, setErrored] = useState(false);
 
-    if (user.avatar !== null && !errored) {
+    if (!!user && user.avatar !== null && !errored) {
         return (
             <img
                 width={size}
