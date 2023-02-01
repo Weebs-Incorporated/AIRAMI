@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { Grid, Link } from '@mui/material';
 import { ExternalLink, InternalLink } from '../Links';
 
@@ -10,7 +10,7 @@ export interface FooterItemProps {
 }
 
 const FooterItem = ({ href, icon, label, type }: FooterItemProps) => (
-    <Grid item xs={6} sm={3} md={2}>
+    <Grid item xs={6} sm={3} md={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {type === 'external' ? (
             <ExternalLink
                 href={href}
@@ -24,7 +24,12 @@ const FooterItem = ({ href, icon, label, type }: FooterItemProps) => (
         ) : (
             <InternalLink
                 to={href}
-                style={{ display: 'flex', flexFlow: 'row', alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                    display: 'flex',
+                    flexFlow: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
             >
                 {icon}&nbsp;
                 <Link underline="hover" color="gray" component="span">
@@ -35,4 +40,4 @@ const FooterItem = ({ href, icon, label, type }: FooterItemProps) => (
     </Grid>
 );
 
-export default FooterItem;
+export default React.memo(FooterItem);

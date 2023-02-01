@@ -2,15 +2,15 @@ import { useContext } from 'react';
 import { Grid, Paper, PaperProps } from '@mui/material';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import FooterItem from './FooterItem';
+import ProfilePicture from '../ProfilePicture';
+import { hasOneOfPermissions } from '../../helpers';
+import { UserPermissions } from '../../types/AIMS';
 
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CodeIcon from '@mui/icons-material/Code';
 import ListIcon from '@mui/icons-material/List';
-import ProfilePicture from '../ProfilePicture/ProfilePicture';
-import { hasOneOfPermissions } from '../../helpers';
-import { UserPermissions } from '../../types/AIMS';
 
 const Footer = (props?: PaperProps) => {
     const { settings } = useContext(SettingsContext);
