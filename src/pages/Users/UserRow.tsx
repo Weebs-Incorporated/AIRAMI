@@ -1,6 +1,4 @@
 import { useMemo, useState } from 'react';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import { TableRow, TableCell, Typography, Button, Link } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { UserBadges } from '../../components/Icons';
@@ -10,8 +8,7 @@ import { UserSession } from '../../contexts';
 import { hasPermission } from '../../helpers';
 import { InternalLink } from '../../components/Links';
 import { ClientFacingUser, UserPermissions } from '../../types';
-
-dayjs.extend(relativeTime);
+import RelativeTimeString from '../../components/RelativeTimeString';
 
 export interface UserRowProps {
     user: ClientFacingUser;
@@ -87,14 +84,14 @@ const UserRow = (props: UserRowProps) => {
                 <Typography>
                     {new Date(user.registered).toLocaleDateString('en-NZ')}
                     <br />
-                    <span style={{ color: 'gray' }}>{dayjs(user.registered).fromNow()}</span>
+                    <RelativeTimeString time={user.registered} color="gray" whiteSpace="nowrap" />
                 </Typography>
             </TableCell>
             <TableCell title={new Date(user.lastLoginOrRefresh).toUTCString()}>
                 <Typography>
                     {new Date(user.lastLoginOrRefresh).toLocaleDateString('en-NZ')}
                     <br />
-                    <span style={{ color: 'gray' }}>{dayjs(user.lastLoginOrRefresh).fromNow()}</span>
+                    <RelativeTimeString time={user.lastLoginOrRefresh} color="gray" whiteSpace="nowrap" />
                 </Typography>
             </TableCell>
         </TableRow>
