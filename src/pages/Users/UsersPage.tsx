@@ -15,7 +15,6 @@ import {
 } from '@mui/material';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { aims } from '../../api';
-import { HomeButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
 import SiteBreadcrumbs from '../../components/SiteBreadcrumbs/SiteBreadcrumbs';
 import { SettingsContext, UserSession, UserSessionContext } from '../../contexts';
@@ -28,6 +27,8 @@ import { Page } from '../Page.styled';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import NotLoggedInPage from '../NotLoggedIn/NotLoggedInPage';
+import MissingPermissionsPage from '../MissingPermissions/MissingPermissionsPage';
 
 export interface UsersPageProps {
     loggedInUser: UserSession;
@@ -202,31 +203,12 @@ const UsersPage = ({ loggedInUser }: UsersPageProps) => {
 const UsersPageWrapper = () => {
     const { user } = useContext(UserSessionContext);
 
-    if (
-        user === null ||
-        !hasOneOfPermissions(user.userData, UserPermissions.Owner, UserPermissions.AssignPermissions)
-    ) {
-        return (
-            <>
-                <SiteBreadcrumbs
-                    items={[
-                        { to: '/', text: 'Home' },
-                        { to: '/users', text: 'Users' },
-                    ]}
-                />
-                <Page>
-                    <div style={{ flexGrow: 1 }} />
-                    <Typography variant="h3" gutterBottom>
-                        Not Cool Enough
-                    </Typography>
-                    <Typography color="gray" textAlign="center">
-                        Regular users are not allowed to access this page.
-                    </Typography>
-                    <HomeButton sx={{ mt: 3 }} />
-                    <Footer />
-                </Page>
-            </>
-        );
+    if (user === null) {
+        return <NotLoggedInPage breadcrumbItems={[{ to: '/users', text: 'Users' }]} />;
+    }
+
+    if (!hasOneOfPermissions(user.userData, UserPermissions.Owner, UserPermissions.AssignPermissions)) {
+        return <MissingPermissionsPage breadcrumbItems={[{ to: '/users', text: 'Users' }]} />;
     }
 
     return (
