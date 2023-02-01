@@ -1,14 +1,13 @@
 import { useMemo, useState } from 'react';
-import { TableRow, TableCell, Typography, Button, Link } from '@mui/material';
+import { TableRow, TableCell, Typography, Button } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { UserBadges } from '../../components/Icons';
 import PermissionEditor from '../../components/PermissionEditor/PermissionEditor';
-import ProfilePicture from '../../components/ProfilePicture/ProfilePicture';
 import { UserSession } from '../../contexts';
 import { hasPermission } from '../../helpers';
-import { InternalLink } from '../../components/Links';
 import { ClientFacingUser, UserPermissions } from '../../types';
 import RelativeTimeString from '../../components/RelativeTimeString';
+import InlineUser from '../../components/InlineUser';
 
 export interface UserRowProps {
     user: ClientFacingUser;
@@ -62,15 +61,7 @@ const UserRow = (props: UserRowProps) => {
     return (
         <TableRow hover>
             <TableCell>
-                <InternalLink to={`/users/${user._id}`}>
-                    <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                        <ProfilePicture user={user} size={24} />
-                        &nbsp;
-                        <Link underline="hover" component="span">
-                            {user.username}#{user.discriminator}
-                        </Link>
-                    </Typography>
-                </InternalLink>
+                <InlineUser user={user} />
             </TableCell>
             <TableCell>{user.posts}</TableCell>
             {showIp && <TableCell>{user.latestIp}</TableCell>}
