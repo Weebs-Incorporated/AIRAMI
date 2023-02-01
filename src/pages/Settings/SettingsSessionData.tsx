@@ -1,46 +1,21 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { Container, Card, Typography, Stack, Button, Collapse, LinearProgress } from '@mui/material';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import { SettingsContext, UserSessionContext } from '../../contexts';
+import { SettingsContext, UserSession, UserSessionContext, UserSessionControllers } from '../../contexts';
 import { LoginButton } from '../../components/Buttons';
 import { messages } from '../../constants';
+import RelativeTimeString from '../../components/RelativeTimeString';
 
-dayjs.extend(relativeTime);
+export interface SettingsSessionDataProps {
+    user: UserSession;
+    controllers: UserSessionControllers;
+}
 
-const SettingsSessionData = () => {
-    const { user, controllers } = useContext(UserSessionContext);
+const SettingsSessionData = ({ user, controllers }: SettingsSessionDataProps) => {
     const { settings } = useContext(SettingsContext);
 
     const expiryTimestamp = useMemo<number>(
         () => (user === null ? 0 : new Date(user.setAt).getTime() + 1000 * user.expiresInSeconds),
         [user],
-    );
-
-    const titles = useMemo(
-        () => ({
-            loggedIn: user === null ? '' : `Discord ID: ${user.userData._id}`,
-            since: user === null ? '' : new Date(user.setAt).toUTCString(),
-            first: user === null ? '' : new Date(user.firstSetAt).toUTCString(),
-            expires: user === null ? '' : new Date(expiryTimestamp).toUTCString(),
-        }),
-        [expiryTimestamp, user],
-    );
-
-    const content = useMemo(
-        () => ({
-            loggedIn: user === null ? '' : `Logged in as: ${user.userData.username}#${user.userData.discriminator}`,
-            since:
-                user === null
-                    ? ''
-                    : `${new Date(user.setAt).toLocaleDateString('en-NZ')} (${dayjs(user.setAt).fromNow()})`,
-            first:
-                user === null
-                    ? ''
-                    : `${new Date(user.firstSetAt).toLocaleDateString('en-NZ')} (${dayjs(user.firstSetAt).fromNow()})`,
-            expires: user === null ? '' : dayjs(expiryTimestamp).fromNow(),
-        }),
-        [expiryTimestamp, user],
     );
 
     const [lastOutput, setLastOutput] = useState('');
@@ -53,6 +28,7 @@ const SettingsSessionData = () => {
             e.preventDefault();
             if (user?.siteToken === undefined) return;
 
+            setLastOutput('');
             setIsLoggingOut(true);
 
             controllers
@@ -79,6 +55,7 @@ const SettingsSessionData = () => {
             e.preventDefault();
             if (user?.siteToken === undefined) return;
 
+            setLastOutput('');
             setIsRefreshing(true);
 
             controllers
@@ -108,28 +85,29 @@ const SettingsSessionData = () => {
 
     return (
         <Container sx={{ mt: 3 }} maxWidth="sm">
-            <Card sx={{ p: 1, width: '100%', display: 'flex', flexDirection: 'column' }} elevation={10}>
-                <Typography variant="h4" textAlign="center">
-                    Session Data
-                </Typography>
-                {user === null ? (
-                    <Typography textAlign="center" color="gray">
-                        Not logged in
+            <Card sx={{ p: 1 }} elevation={10}>
+                <Stack sx={{ width: '100%' }} alignItems="flex-start">
+                    <Typography variant="h4" textAlign="center" gutterBottom>
+                        Session Data
                     </Typography>
-                ) : (
-                    <>
-                        <Typography title={titles.loggedIn}>{content.loggedIn}</Typography>
-                        <Typography title={titles.since}>Last Updated: {content.since}</Typography>
-                        <Typography title={titles.first}>Since: {content.first}</Typography>
-                        <Typography title={titles.expires}>Expires {content.expires}</Typography>
-                    </>
-                )}
-                {user === null ? (
-                    <Stack direction="row" spacing={2} sx={{ mt: 1 }} justifyContent="center">
-                        <LoginButton />
-                    </Stack>
-                ) : (
-                    <Stack direction="row" spacing={2} sx={{ mt: 1 }} justifyContent="flex-end">
+
+                    <Typography title={`Discord ID: ${user.userData._id}`}>
+                        User: {user.userData.username}#{user.userData.discriminator}
+                    </Typography>
+                    <Typography title={new Date(user.setAt).toUTCString()}>
+                        Last Updated: {new Date(user.setAt).toLocaleDateString('en-NZ')}{' '}
+                        <RelativeTimeString time={user.setAt} inBrackets />
+                    </Typography>
+                    <Typography title={new Date(user.firstSetAt).toUTCString()}>
+                        Since: {new Date(user.firstSetAt).toLocaleDateString('en-NZ')}{' '}
+                        <RelativeTimeString time={user.firstSetAt} inBrackets />
+                    </Typography>
+                    <Typography title={new Date(expiryTimestamp).toLocaleDateString('en-NZ')}>
+                        Expires <RelativeTimeString time={expiryTimestamp} /> (
+                        {new Date(expiryTimestamp).toLocaleDateString('en-NZ')})
+                    </Typography>
+
+                    <Stack direction="row" spacing={2} sx={{ mt: 1 }} alignSelf="flex-end">
                         <Button
                             variant="outlined"
                             color="info"
@@ -147,29 +125,32 @@ const SettingsSessionData = () => {
                             Logout
                         </Button>
                     </Stack>
-                )}
-                <Collapse in={isLoggingOut}>
-                    <Stack>
-                        <Typography color="gray" gutterBottom>
-                            Logging Out
+
+                    <Collapse in={isLoggingOut || isRefreshing} sx={{ alignSelf: 'stretch' }}>
+                        <Stack sx={{ mt: 1 }}>
+                            <Typography color="gray" gutterBottom textAlign="center">
+                                {isLoggingOut ? 'Logging Out' : 'Refreshing'}
+                            </Typography>
+                            <LinearProgress />
+                        </Stack>
+                    </Collapse>
+                    <Collapse in={lastOutput !== ''} sx={{ alignSelf: 'center' }}>
+                        <Typography color="gray" sx={{ mt: 1 }}>
+                            {lastOutput}
                         </Typography>
-                        <LinearProgress />
-                    </Stack>
-                </Collapse>
-                <Collapse in={isRefreshing}>
-                    <Stack>
-                        <Typography color="gray" gutterBottom>
-                            Refreshing
-                        </Typography>
-                        <LinearProgress />
-                    </Stack>
-                </Collapse>
-                <Collapse in={lastOutput !== ''}>
-                    <Typography color="gray">{lastOutput}</Typography>
-                </Collapse>
+                    </Collapse>
+                </Stack>
             </Card>
         </Container>
     );
 };
 
-export default SettingsSessionData;
+const SettingsSessionDataWrapper = () => {
+    const { user, controllers } = useContext(UserSessionContext);
+
+    if (user === null) return <LoginButton size="large" />;
+
+    return <SettingsSessionData user={user} controllers={controllers} />;
+};
+
+export default SettingsSessionDataWrapper;

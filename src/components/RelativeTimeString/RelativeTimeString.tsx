@@ -5,8 +5,8 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 
 export interface RelativeTimeStringProps extends React.CSSProperties {
-    /** The ISO string of the time to display relative to now. */
-    time: string;
+    /** The ISO string or timestamp of the time to display relative to now. */
+    time: string | number;
     /** If true, displays relative time without suffix, e.g. "2 days" instead of "2 days ago". */
     withoutSuffix?: boolean;
     /** Interval between re-renders in milliseconds, default 1000. */
