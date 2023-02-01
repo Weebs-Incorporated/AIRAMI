@@ -77,8 +77,6 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
             return <></>;
         }
 
-        console.log('re');
-
         return (
             <>
                 <Button
@@ -109,8 +107,6 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
             </>
         );
     }, [controllers, isSelf, loggedInUser, permissionElementOpen, user]);
-
-    useEffect(() => console.log(user.permissions), [user]);
 
     const submissionElement = useMemo(() => {
         if (loggedInUser === null || !isSelf) return <></>;
