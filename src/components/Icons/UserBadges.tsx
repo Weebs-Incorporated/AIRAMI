@@ -58,6 +58,7 @@ const NonMemoizedUserBadges = (props: UserBadgesProps) => {
                             style={{
                                 color: 'gray',
                                 fontSize: '12px',
+                                whiteSpace: 'nowrap',
                             }}
                         >
                             {label}
