@@ -10,8 +10,6 @@ import {
     ListItemButton,
     Button,
 } from '@mui/material';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import { HomeButton } from '../../components/Buttons';
 import { SettingsContext, UserSessionContext } from '../../contexts';
 import Footer from '../../components/Footer';
@@ -38,8 +36,7 @@ import PermissionEditor from '../../components/PermissionEditor/PermissionEditor
 
 import eyes from './eyes.png';
 import { messages } from '../../constants';
-
-dayjs.extend(relativeTime);
+import RelativeTimeString from '../../components/RelativeTimeString';
 
 export interface ProfilePageProps {
     user: ClientFacingUser;
@@ -204,15 +201,13 @@ const ProfilePage = (props: ProfilePageProps) => {
                     <UserBadges user={user} />
 
                     <Typography title={new Date(user.registered).toUTCString()} textAlign="center">
-                        Registered {dayjs(user.registered).fromNow()}.{' '}
-                        <span style={{ color: 'gray' }}>({new Date(user.registered).toLocaleDateString('en-NZ')})</span>
+                        Registered: {new Date(user.registered).toLocaleDateString('en-NZ')}{' '}
+                        <RelativeTimeString color="gray" time={user.registered} inBrackets />
                     </Typography>
 
                     <Typography title={new Date(user.lastLoginOrRefresh).toUTCString()} textAlign="center">
-                        Last seen {dayjs(user.lastLoginOrRefresh).fromNow()}.{' '}
-                        <span style={{ color: 'gray' }}>
-                            ({new Date(user.lastLoginOrRefresh).toLocaleDateString('en-NZ')})
-                        </span>
+                        Last Seen: {new Date(user.lastLoginOrRefresh).toLocaleDateString('en-NZ')}{' '}
+                        <RelativeTimeString color="gray" time={user.lastLoginOrRefresh} inBrackets />
                     </Typography>
 
                     {canViewIp && (
@@ -220,7 +215,7 @@ const ProfilePage = (props: ProfilePageProps) => {
                             IP:{' '}
                             <span style={{ minWidth: '100px' }}>
                                 {isRevealingIp ? user.latestIp ?? 'Unknown' : 'Hidden'}
-                            </span>
+                            </span>{' '}
                             <Button
                                 variant="text"
                                 color="secondary"
