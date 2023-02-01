@@ -43,11 +43,15 @@ dayjs.extend(relativeTime);
 
 export interface ProfilePageProps {
     user: ClientFacingUser;
+    setUser: (newUser: ClientFacingUser) => void;
 }
 
-const ProfilePage = ({ user }: ProfilePageProps) => {
+const ProfilePage = (props: ProfilePageProps) => {
+    const { user, setUser } = props;
+
     const { user: loggedInUser, controllers } = useContext(UserSessionContext);
     const { settings } = useContext(SettingsContext);
+
     const permissions = useMemo(
         () =>
             splitBitField(user.permissions).sort(
@@ -97,7 +101,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                         setPermissionElementOpen(false);
                     }}
                     onPermissionsUpdate={(newPermissions) => {
-                        user.permissions = newPermissions;
+                        setUser({ ...user, permissions: newPermissions });
                         if (isSelf) {
                             controllers.updatePermissions(newPermissions);
                         }
@@ -106,7 +110,7 @@ const ProfilePage = ({ user }: ProfilePageProps) => {
                 />
             </>
         );
-    }, [controllers, isSelf, loggedInUser, permissionElementOpen, user]);
+    }, [controllers, isSelf, loggedInUser, permissionElementOpen, setUser, user]);
 
     const submissionElement = useMemo(() => {
         if (loggedInUser === null || !isSelf) return <></>;
@@ -327,7 +331,11 @@ const ProfilePageWrapper = () => {
     }, [loggedInUser, queriedUser?._id]);
 
     useEffect(() => {
-        if (id === undefined || (queriedUser !== null && queriedUser._id === id)) return;
+        // don't try fetching the user if no ID is specified
+        if (id === undefined) return;
+
+        // don't try fetching the user if we've already fetched them
+        if (queriedUser?._id === id) return;
 
         const controller = new AbortController();
 
@@ -408,7 +416,7 @@ const ProfilePageWrapper = () => {
 
     return (
         <>
-            <ProfilePage user={queriedUser} />
+            <ProfilePage user={queriedUser} setUser={setQueriedUser} />
             <Footer />
         </>
     );
