@@ -26,7 +26,7 @@ import {
 import { useParams } from 'react-router-dom';
 import { ExpandMore, UserBadges } from '../../components/Icons';
 import SiteBreadcrumbs from '../../components/SiteBreadcrumbs';
-import { getUser } from '../../api/aims';
+import { aims } from '../../api';
 import { ClientFacingUser, UserPermissions, User } from '../../types';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -339,7 +339,7 @@ const ProfilePageWrapper = () => {
 
         const controller = new AbortController();
 
-        getUser(
+        aims.getUser(
             {
                 baseURL: settings.serverUrl,
                 siteToken: loggedInUser?.siteToken,
