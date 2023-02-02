@@ -536,6 +536,56 @@ export async function getSubmission(
     }
 }
 
+export async function makeSubmission(
+    props: BaseRequestProps<true, true>,
+    id: string,
+    data: Uint8Array,
+    imageType: string,
+): Promise<
+    ServerResponse<
+        Responsify<string, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 409 | 415 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig(props, 'PUT', `/submissions/${id}`, data, { 'Content-Type': imageType });
+
+    try {
+        const { data } = await axios.request<string>(config);
+
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (
+            error.response.status === 403 ||
+            error.response.status === 409 ||
+            error.response.status === 415 ||
+            error.response.status === 501
+        ) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
 export async function acceptSubmission(
     props: BaseRequestProps<true, true>,
     id: string,

@@ -37,6 +37,7 @@ import PermissionEditor from '../../components/PermissionEditor/PermissionEditor
 import eyes from './eyes.png';
 import { messages } from '../../constants';
 import RelativeTimeString from '../../components/RelativeTimeString';
+import SubmissionCreator from '../../components/SubmissionCreator';
 
 export interface ProfilePageProps {
     user: ClientFacingUser;
@@ -48,6 +49,8 @@ const ProfilePage = (props: ProfilePageProps) => {
 
     const { user: loggedInUser, controllers } = useContext(UserSessionContext);
     const { settings } = useContext(SettingsContext);
+
+    const [isSubmissionElementOpen, setIsSubmissionElementOpen] = useState(false);
 
     const permissions = useMemo(
         () =>
@@ -124,19 +127,25 @@ const ProfilePage = (props: ProfilePageProps) => {
         }
         return (
             <>
+                <SubmissionCreator
+                    loggedInUser={loggedInUser}
+                    open={isSubmissionElementOpen}
+                    onClose={() => setIsSubmissionElementOpen(false)}
+                />
                 <Button
                     variant="outlined"
                     color="success"
                     startIcon={<AddIcon />}
                     onClick={(e) => {
                         e.preventDefault();
+                        setIsSubmissionElementOpen(true);
                     }}
                 >
                     New Submission
                 </Button>
             </>
         );
-    }, [isSelf, loggedInUser]);
+    }, [isSelf, isSubmissionElementOpen, loggedInUser]);
 
     const [isViewingPermissions, setIsViewingPermissions] = useState(false);
 
