@@ -671,3 +671,32 @@ export async function rejectSubmission(
         return genericFailResponse(error.response);
     }
 }
+
+export async function getRandomPosts(
+    props: BaseRequestProps<true, false>,
+    amount: number,
+): Promise<ServerResponse<Responsify<Post<PostStatus.Public>[], 200>, Responsify<void, 501> | RateLimitedResponse>> {
+    const config = makeRequestConfig(props, 'GET', `/posts/random?amount=${amount}`);
+
+    try {
+        const { data } = await axios.request<Post<PostStatus.Public>[]>(config);
+
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
