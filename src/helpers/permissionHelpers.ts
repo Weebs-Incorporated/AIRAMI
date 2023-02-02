@@ -56,6 +56,10 @@ export function hasOneOfPermissions(
     return false;
 }
 
+export const permissionNamesMap: { [k in UserPermissions]?: string } = {
+    [UserPermissions.AssignPermissions]: 'Admin',
+};
+
 export const permissionDescriptionsMap: Record<UserPermissions, string> = {
     [UserPermissions.AssignPermissions]: 'Change permissions of themselves and others.',
     [UserPermissions.Audit]: 'Modify post attributes and accept/deny/withdraw posts.',

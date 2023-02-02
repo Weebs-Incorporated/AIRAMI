@@ -18,6 +18,7 @@ import {
     hasOneOfPermissions,
     hasPermission,
     permissionDescriptionsMap,
+    permissionNamesMap,
     permissionsDisplayOrder,
     splitBitField,
 } from '../../helpers';
@@ -268,7 +269,7 @@ const ProfilePage = (props: ProfilePageProps) => {
                                         <Grid item key={permission}>
                                             <Chip
                                                 title={permissionDescriptionsMap[permission]}
-                                                label={UserPermissions[permission]}
+                                                label={permissionNamesMap[permission] ?? UserPermissions[permission]}
                                                 component="span"
                                             />
                                         </Grid>

@@ -17,7 +17,7 @@ import {
     Typography,
 } from '@mui/material';
 import { SettingsContext, UserSession } from '../../contexts';
-import { hasPermission, permissionDescriptionsMap } from '../../helpers';
+import { hasPermission, permissionDescriptionsMap, permissionNamesMap } from '../../helpers';
 import { aims } from '../../api';
 import { ClientFacingUser, UserPermissions } from '../../types';
 
@@ -129,7 +129,11 @@ const PermissionEditor = (props: PermissionEditorProps) => {
                                         />
                                     }
                                     componentsProps={{ typography: { width: '100%' } }}
-                                    label={<ListItemButton>{UserPermissions[permission]}</ListItemButton>}
+                                    label={
+                                        <ListItemButton>
+                                            {permissionNamesMap[permission] ?? UserPermissions[permission]}
+                                        </ListItemButton>
+                                    }
                                 />
                                 <FormLabel>
                                     <Typography color="gray">{permissionDescriptionsMap[permission]}</Typography>
