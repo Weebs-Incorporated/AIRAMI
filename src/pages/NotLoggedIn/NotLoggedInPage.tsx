@@ -1,5 +1,5 @@
-import { Typography } from '@mui/material';
-import { HomeButton } from '../../components/Buttons';
+import { Stack, Typography } from '@mui/material';
+import { HomeButton, LoginButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
 import SiteBreadcrumbs, { SiteBreadcrumbsProps } from '../../components/SiteBreadcrumbs';
 import { Page } from '../Page.styled';
@@ -16,7 +16,10 @@ const NotLoggedInPage = ({ breadcrumbItems }: { breadcrumbItems: SiteBreadcrumbs
                 <Typography color="gray" textAlign="center">
                     You must be logged in to access this page.
                 </Typography>
-                <HomeButton sx={{ mt: 3 }} />
+                <Stack direction="row" sx={{ mt: 3 }} spacing={2}>
+                    <HomeButton />
+                    <LoginButton size="large" />
+                </Stack>
                 <Footer />
             </Page>
         </>
