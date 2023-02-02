@@ -91,20 +91,23 @@ const AttributesSection = (props: AttributesSectionProps) => {
             },
             newAttributes,
             id,
-        ).then((res) => {
-            if (res === 'aborted') return;
-            if (res.success) {
+        )
+            .then((res) => {
+                if (res === 'aborted') return;
+                if (res.success) {
+                    setSuccess(true);
+                    onUpdate(res.data);
+                } else if (res.generic) setError(messages.genericFail(res));
+                else if (res.status === 401) setError(messages[401](res.data));
+                else if (res.status === 403) setError(messages[403]());
+                else if (res.status === 404) setError('Submission Not Found');
+                else if (res.status === 429) setError(messages[429](res.data));
+                else if (res.status === 501) setError(messages[501]);
+                else throw res;
+            })
+            .finally(() => {
                 setIsSaving(false);
-                setSuccess(true);
-                onUpdate(res.data);
-            } else if (res.generic) setError(messages.genericFail(res));
-            else if (res.status === 401) setError(messages[401](res.data));
-            else if (res.status === 403) setError(messages[403]());
-            else if (res.status === 404) setError('Submission Not Found');
-            else if (res.status === 429) setError(messages[429](res.data));
-            else if (res.status === 501) setError(messages[501]);
-            else throw res;
-        });
+            });
 
         return () => {
             controller.abort();
