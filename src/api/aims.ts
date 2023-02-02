@@ -4,6 +4,7 @@ import {
     ClientFacingUser,
     LoginResponse,
     Post,
+    PostAttributes,
     PostStatus,
     RateLimitedResponse,
     Responsify,
@@ -399,46 +400,49 @@ export async function getSomeUsers(
     }
 }
 
-// export async function makeSubmission(
-//     props: BaseRequestProps<true, true>,
-//     post: Partial<Post<PostStatus.InitialAwaitingValidation>> & { url: string },
-// ): Promise<
-//     ServerResponse<Resp
-//onsify<string, 200>, Responsify<string, 401> | Responsify<void, 409 | 501> | RateLimitedResponse>
-// > {
-//     const config = makeRequestConfig(props, 'PUT', '/submissions', post);
+export async function editSubmissionAttributes(
+    props: BaseRequestProps<true, true>,
+    attributes: PostAttributes,
+    id: string,
+): Promise<
+    ServerResponse<
+        Responsify<Post<PostStatus.InitialAwaitingValidation>, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig<Partial<PostAttributes>>(props, 'PATCH', `/submissions/${id}`, attributes);
 
-//     try {
-//         const { data } = await axios.request<string>(config);
+    try {
+        const { data } = await axios.request<Post<PostStatus.InitialAwaitingValidation>>(config);
 
-//         return { success: true, status: 200, data };
-//     } catch (error) {
-//         if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
 
-//         const rateLimit = handleRateLimited(error.response);
-//         if (rateLimit) return rateLimit;
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
 
-//         if (error.response.status === 401) {
-//             return {
-//                 success: false,
-//                 generic: false,
-//                 status: error.response.status,
-//                 data: error.response.data['message'],
-//             };
-//         }
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
 
-//         if (error.response.status === 409 || error.response.status === 501) {
-//             return {
-//                 success: false,
-//                 generic: false,
-//                 status: error.response.status,
-//                 data: undefined,
-//             };
-//         }
+        if (error.response.status === 403 || error.response.status === 404 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
 
-//         return genericFailResponse(error.response);
-//     }
-// }
+        return genericFailResponse(error.response);
+    }
+}
 
 type GetAllSubmissionsOutput = {
     totalItems: number;
@@ -477,6 +481,135 @@ export async function getAllSubmissions(
         }
 
         if (error.response.status === 403 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function getSubmission(
+    props: BaseRequestProps<true, true>,
+    id: string,
+): Promise<
+    ServerResponse<
+        Responsify<Post<PostStatus.InitialAwaitingValidation>, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig(props, 'GET', `/submissions/${id}`);
+
+    try {
+        const { data } = await axios.request<Post<PostStatus.InitialAwaitingValidation>>(config);
+
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 403 || error.response.status === 404 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function acceptSubmission(
+    props: BaseRequestProps<true, true>,
+    id: string,
+): Promise<
+    ServerResponse<
+        Responsify<void, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig(props, 'POST', `/submissions/${id}`);
+
+    try {
+        const { data } = await axios.request<void>(config);
+
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 403 || error.response.status === 404 || error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function rejectSubmission(
+    props: BaseRequestProps<true, true>,
+    id: string,
+): Promise<
+    ServerResponse<
+        Responsify<void, 200>,
+        Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
+    >
+> {
+    const config = makeRequestConfig(props, 'DELETE', `/submissions/${id}`);
+
+    try {
+        const { data } = await axios.request<void>(config);
+
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 401) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: error.response.data['message'],
+            };
+        }
+
+        if (error.response.status === 403 || error.response.status === 404 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,

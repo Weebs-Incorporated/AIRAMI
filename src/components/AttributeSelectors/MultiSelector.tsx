@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import React from 'react';
 import {
     Box,
     Chip,
@@ -11,48 +11,35 @@ import {
     Typography,
 } from '@mui/material';
 import { splitBitField } from '../../helpers';
-import { DescMap } from './attributeDescriptionMap';
+import { attributesDataMap, MultiSelectValues } from './attributeSelectorUtils';
+import { PostAttributes } from '../../types';
 
-export interface MultiSelectorProps {
-    value: number;
-    setValue: (newValue: number) => void;
-    label: string;
-    optionsEnum: DescMap<number>;
-    descMap: DescMap<number>;
+export interface MultiSelectorProps<T extends MultiSelectValues> {
+    attributeName: T;
+    value: PostAttributes[T];
+    setValue: (newValue: PostAttributes[T]) => void;
+    readonly: boolean;
 }
 
-export const MultiSelector = (props: MultiSelectorProps) => {
-    const { value, setValue, label, optionsEnum, descMap } = props;
+const NonMemoizedMultiSelector = <T extends MultiSelectValues>(props: MultiSelectorProps<T>) => {
+    const { attributeName, value, setValue, readonly } = props;
 
-    const handleChange = useCallback(
-        (e: SelectChangeEvent<number[]>) => {
-            e.preventDefault();
-            if (typeof e.target.value === 'string') console.log(e.target.value);
-            else {
-                setValue(e.target.value.reduce((prev, next) => prev | next, 0));
-            }
-        },
-        [setValue],
-    );
+    const { descriptions, label, names, values } = attributesDataMap[attributeName];
 
-    const menuItems = useMemo(
-        () =>
-            (Object.values(optionsEnum).filter((e) => typeof e !== 'string') as number[]).map((e) => (
-                <MenuItem value={e} key={e}>
-                    <Stack>
-                        <span>{optionsEnum[e]}</span>
-                        <Typography fontSize="smaller" color="gray" whiteSpace="normal">
-                            {descMap[e]}
-                        </Typography>
-                    </Stack>
-                </MenuItem>
-            )),
-        [descMap, optionsEnum],
-    );
+    const handleChange = (e: SelectChangeEvent<PostAttributes[T][]>) => {
+        e.preventDefault();
 
-    const name = useMemo(() => label.toLowerCase().replaceAll(/\s/g, ''), [label]);
+        const combinedValues =
+            typeof e.target.value === 'string'
+                ? parseInt(e.target.value)
+                : e.target.value.reduce((prev, next) => prev | next, 0);
 
-    const selectedValues = useMemo(() => splitBitField(value), [value]);
+        setValue(combinedValues as PostAttributes[T]);
+    };
+
+    const selectedValues = splitBitField(value);
+
+    const reverseValueMap = Object.assign({}, ...Object.keys(values).map((key) => ({ [values[key]]: key })));
 
     return (
         <FormControl fullWidth>
@@ -60,20 +47,32 @@ export const MultiSelector = (props: MultiSelectorProps) => {
             <Select
                 sx={{ minWidth: 150 }}
                 multiple
-                name={name}
+                name={attributeName}
                 label={label}
                 value={selectedValues}
                 onChange={handleChange}
                 renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => (
-                            <Chip key={value} label={optionsEnum[value]} />
+                        {selected.map((e) => (
+                            <Chip key={e} label={names[e] ?? reverseValueMap[e]} />
                         ))}
                     </Box>
                 )}
+                disabled={readonly}
             >
-                {menuItems}
+                {Object.keys(values).map((e) => (
+                    <MenuItem value={values[e]} key={e}>
+                        <Stack>
+                            <span>{names[values[e] as PostAttributes[T]] ?? e}</span>
+                            <Typography fontSize="smaller" color="gray" whiteSpace="normal">
+                                {descriptions[values[e] as PostAttributes[T]]}
+                            </Typography>
+                        </Stack>
+                    </MenuItem>
+                ))}
             </Select>
         </FormControl>
     );
 };
+
+export const MultiSelector = React.memo(NonMemoizedMultiSelector);

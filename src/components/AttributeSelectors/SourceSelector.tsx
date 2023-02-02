@@ -6,6 +6,7 @@ import { Source } from '../../types/AIMS/Post/Attributes/Source';
 export interface SourceSelectorProps {
     sources: Post<PostStatus.InitialAwaitingValidation>['attributes']['sources'];
     setSources: (newSources: Post<PostStatus.InitialAwaitingValidation>['attributes']['sources']) => void;
+    readonly: boolean;
 }
 
 const sourceOptions = Object.values(Source).filter((e) => typeof e !== 'string') as Source[];
@@ -38,7 +39,7 @@ const sourceExamples: Record<Source, { post: string; account: string }> = {
 };
 
 export const SourceSelector = (props: SourceSelectorProps) => {
-    const { sources, setSources } = props;
+    const { sources, setSources, readonly } = props;
 
     const handleCheck = useCallback(
         (source: Source) => (_e: SyntheticEvent, checked: boolean) => {
@@ -79,38 +80,45 @@ export const SourceSelector = (props: SourceSelectorProps) => {
                             <Grid item>
                                 <FormControlLabel
                                     sx={{ minWidth: '132px' }}
-                                    control={<Checkbox checked={!!sources[e]} />}
+                                    control={<Checkbox checked={!!sources[e]} disabled={readonly} />}
                                     label={Source[e]}
                                     onChange={handleCheck(e)}
                                 />
                             </Grid>
-                            <Grid item sx={{ flexGrow: 1 }}>
-                                <Fade in={!!sources[e]}>
-                                    <TextField
-                                        fullWidth
-                                        inputMode="url"
-                                        name={`source${Source[e]}Post`}
-                                        label={`${Source[e]} Post Link`}
-                                        InputLabelProps={{ shrink: true }}
-                                        value={sources[e]?.post ?? ''}
-                                        onChange={handleValueChange(e, 'post')}
-                                        placeholder={sourceExamples[e].post}
-                                    />
-                                </Fade>
-                            </Grid>
-                            <Grid item sx={{ flexGrow: 1 }}>
-                                <Fade in={!!sources[e]}>
-                                    <TextField
-                                        fullWidth
-                                        inputMode="url"
-                                        name={`source${Source[e]}Author`}
-                                        label={`${Source[e]} Account Link`}
-                                        InputLabelProps={{ shrink: true }}
-                                        onChange={handleValueChange(e, 'account')}
-                                        placeholder={sourceExamples[e].account}
-                                    />
-                                </Fade>
-                            </Grid>
+                            {!!sources[e] && (
+                                <>
+                                    <Grid item sx={{ flexGrow: 1 }}>
+                                        <Fade in>
+                                            <TextField
+                                                fullWidth
+                                                inputMode="url"
+                                                name={`source${Source[e]}Post`}
+                                                label="Post"
+                                                InputLabelProps={{ shrink: true }}
+                                                value={sources[e]?.post ?? ''}
+                                                onChange={handleValueChange(e, 'post')}
+                                                placeholder={sourceExamples[e].post}
+                                                disabled={readonly}
+                                            />
+                                        </Fade>
+                                    </Grid>
+                                    <Grid item sx={{ flexGrow: 1 }}>
+                                        <Fade in>
+                                            <TextField
+                                                fullWidth
+                                                inputMode="url"
+                                                name={`source${Source[e]}Author`}
+                                                label="Account"
+                                                InputLabelProps={{ shrink: true }}
+                                                value={sources[e]?.account ?? ''}
+                                                onChange={handleValueChange(e, 'account')}
+                                                placeholder={sourceExamples[e].account}
+                                                disabled={readonly}
+                                            />
+                                        </Fade>
+                                    </Grid>
+                                </>
+                            )}
                         </Grid>
                     </FormGroup>
                 </Grid>

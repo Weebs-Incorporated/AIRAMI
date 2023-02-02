@@ -2,7 +2,16 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
 import ContextProviders from './providers';
-import { HomePage, NotFoundPage, SettingsPage, LoginPage, ProfilePage, UsersPage, SubmissionsPage } from './pages';
+import {
+    HomePage,
+    NotFoundPage,
+    SettingsPage,
+    LoginPage,
+    ProfilePage,
+    UsersPage,
+    SubmissionsPage,
+    SingleSubmissionPage,
+} from './pages';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -22,6 +31,7 @@ function App() {
                         <Route path="users" element={<UsersPage />} />
                         <Route path="users/:id" element={<ProfilePage />} />
                         <Route path="submissions" element={<SubmissionsPage />} />
+                        <Route path="submissions/:id" element={<SingleSubmissionPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </ContextProviders>
