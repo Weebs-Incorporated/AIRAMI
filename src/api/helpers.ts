@@ -11,6 +11,7 @@ export function makeRequestConfig<T = never>(
     method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
     url?: string,
     data?: T,
+    extraHeaders?: Record<string, string>,
 ): AxiosRequestConfig {
     const { baseURL, controller, rateLimitBypassToken, siteToken } = props;
 
@@ -21,6 +22,11 @@ export function makeRequestConfig<T = never>(
     }
 
     if (siteToken !== undefined) headers.set('Authorization', `Bearer ${siteToken}`);
+    if (extraHeaders !== undefined) {
+        for (const headerName of Object.keys(extraHeaders)) {
+            headers.set(headerName, extraHeaders[headerName]);
+        }
+    }
 
     const conf: AxiosRequestConfig = {
         baseURL,
