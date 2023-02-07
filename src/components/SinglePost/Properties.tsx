@@ -56,13 +56,13 @@ const Properties = (props: PropertiesProps) => {
                 <img
                     src={`${settings.serverUrl}/images/${id}`}
                     alt="submission"
-                    style={{ maxWidth: '100%', maxHeight: '100%' }}
+                    style={{ maxWidth: 'min(100%, 100vw)', maxHeight: 'min(100%, 90vh)' }}
                     loading="lazy"
                     onLoad={() => setLoaded(true)}
                 />
             </Grid>
             <Grid item xs={12} md={6} lg={5} xl={4}>
-                <div style={{ height: '100%' }}>
+                <div style={{ height: 'min(100%, 90vh)' }}>
                     <Collapse in={shouldStart(0)} sx={{ position: 'sticky', top: '10px' }}>
                         <Paper elevation={10} sx={{ p: 1, overflowX: 'hidden' }}>
                             <Stack divider={<Divider />}>
