@@ -26,6 +26,12 @@ const byteValueNumberFormatter = Intl.NumberFormat('en', {
     unitDisplay: 'narrow',
 });
 
+const statusMap: Record<PostStatus, string> = {
+    [PostStatus.InitialAwaitingValidation]: 'Pending',
+    [PostStatus.Public]: 'Public',
+    [PostStatus.ReAwaitingValidation]: 'Withdrawn',
+};
+
 const Property = ({ name, value, slideIn }: { name: string; value: ReactNode; slideIn: boolean }) => (
     <Slide direction="right" in={slideIn}>
         <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pt: 1, pb: 1 }}>
@@ -90,11 +96,7 @@ const Properties = (props: PropertiesProps) => {
                                         </>
                                     }
                                 />
-                                <Property
-                                    slideIn={shouldStart(3)}
-                                    name="Status"
-                                    value={PostStatus[properties.status]}
-                                />
+                                <Property slideIn={shouldStart(3)} name="Status" value={statusMap[properties.status]} />
                                 <Property
                                     slideIn={shouldStart(4)}
                                     name="Uploaded"

@@ -33,7 +33,7 @@ const SinglePost = <T extends PostStatus>(props: SinglePostProps<T>) => {
                     onUpdate(newPost as Post<T>);
                 }}
             />
-            <Typography variant="h3" gutterBottom textAlign="center" sx={{ mt: 3 }}>
+            <Typography variant="h3" gutterBottom textAlign="center">
                 Attributes
             </Typography>
             <Attributes
