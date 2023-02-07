@@ -37,7 +37,7 @@ const ApproveReject = ({ postId, onApprove, onReject, slideIn }: ApproveRejectPr
 
     const handleAccept = useCallback(() => {
         if (user?.siteToken === undefined) return;
-        if (status !== 'inProgress') return;
+        if (status === 'inProgress') return;
 
         setInProgress('Approving...');
 
@@ -73,7 +73,7 @@ const ApproveReject = ({ postId, onApprove, onReject, slideIn }: ApproveRejectPr
 
     const handleReject = useCallback(() => {
         if (user?.siteToken === undefined) return;
-        if (status !== 'inProgress') return;
+        if (status === 'inProgress') return;
 
         setInProgress('Rejecting...');
 
