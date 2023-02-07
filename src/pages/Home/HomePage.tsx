@@ -1,4 +1,4 @@
-import { Container, ImageList, ImageListItem, Link, Typography } from '@mui/material';
+import { CardActionArea, Container, ImageList, ImageListItem, Link, Typography } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import { aims } from '../../api';
 import Footer from '../../components/Footer';
@@ -25,7 +25,7 @@ const HomePage = () => {
         ).then((res) => {
             if (res === 'aborted') return;
             if (res.success) setImages(res.data);
-            else console.log(res);
+            else throw res;
         });
     }, [settings.rateLimitBypassToken, settings.serverUrl]);
 
@@ -45,15 +45,19 @@ const HomePage = () => {
                 <Container maxWidth="lg">
                     <ImageList variant="masonry" cols={3} gap={8}>
                         {images.map((e) => (
-                            <ImageListItem key={e._id}>
-                                <img
-                                    src={`${settings.serverUrl}/images/${e._id}`}
-                                    alt={`post ${e._id}`}
-                                    loading="lazy"
-                                    height={e.properties.dimensions.height}
-                                    width={e.properties.dimensions.width}
-                                />
-                            </ImageListItem>
+                            <CardActionArea key={e._id}>
+                                <InternalLink to={`/posts/${e._id}`}>
+                                    <ImageListItem>
+                                        <img
+                                            src={`${settings.serverUrl}/images/${e._id}`}
+                                            alt={`post ${e._id}`}
+                                            loading="lazy"
+                                            height={e.properties.dimensions.height}
+                                            width={e.properties.dimensions.width}
+                                        />
+                                    </ImageListItem>
+                                </InternalLink>
+                            </CardActionArea>
                         ))}
                     </ImageList>
                 </Container>

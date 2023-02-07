@@ -11,6 +11,7 @@ import {
     UsersPage,
     SubmissionsPage,
     SingleSubmissionPage,
+    SinglePostPage,
 } from './pages';
 
 import '@fontsource/roboto/300.css';
@@ -32,6 +33,7 @@ function App() {
                         <Route path="users/:id" element={<ProfilePage />} />
                         <Route path="submissions" element={<SubmissionsPage />} />
                         <Route path="submissions/:id" element={<SingleSubmissionPage />} />
+                        <Route path="posts/:id" element={<SinglePostPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </ContextProviders>

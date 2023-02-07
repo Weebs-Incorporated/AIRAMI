@@ -400,20 +400,26 @@ export async function getSomeUsers(
     }
 }
 
-export async function editSubmissionAttributes(
+export async function editPostAttributes<T extends PostStatus>(
     props: BaseRequestProps<true, true>,
     attributes: PostAttributes,
     id: string,
+    postType: T,
 ): Promise<
     ServerResponse<
-        Responsify<Post<PostStatus.InitialAwaitingValidation>, 200>,
+        Responsify<Post<T>, 200>,
         Responsify<string, 401> | Responsify<void, 403 | 404 | 501> | RateLimitedResponse
     >
 > {
-    const config = makeRequestConfig<Partial<PostAttributes>>(props, 'PATCH', `/submissions/${id}`, attributes);
+    let path = '';
+    if (postType === PostStatus.InitialAwaitingValidation) path = 'submissions';
+    else if (postType === PostStatus.Public) path = 'posts';
+    else path = 'withdrawals';
+
+    const config = makeRequestConfig<Partial<PostAttributes>>(props, 'PATCH', `/${path}/${id}`, attributes);
 
     try {
-        const { data } = await axios.request<Post<PostStatus.InitialAwaitingValidation>>(config);
+        const { data } = await axios.request<Post<T>>(config);
 
         return { success: true, status: 200, data };
     } catch (error) {
@@ -689,6 +695,37 @@ export async function getRandomPosts(
         if (rateLimit) return rateLimit;
 
         if (error.response.status === 501) {
+            return {
+                success: false,
+                generic: false,
+                status: error.response.status,
+                data: undefined,
+            };
+        }
+
+        return genericFailResponse(error.response);
+    }
+}
+
+export async function getPost(
+    props: BaseRequestProps<true, false>,
+    id: string,
+): Promise<
+    ServerResponse<Responsify<Post<PostStatus.Public>, 200>, Responsify<void, 404 | 501> | RateLimitedResponse>
+> {
+    const config = makeRequestConfig(props, 'GET', `/posts/${id}`);
+
+    try {
+        const { data } = await axios.request<Post<PostStatus.Public>>(config);
+
+        return { success: true, status: 200, data };
+    } catch (error) {
+        if (!axios.isAxiosError(error) || error.response === undefined) return unknownFailResponse(error);
+
+        const rateLimit = handleRateLimited(error.response);
+        if (rateLimit) return rateLimit;
+
+        if (error.response.status === 404 || error.response.status === 501) {
             return {
                 success: false,
                 generic: false,

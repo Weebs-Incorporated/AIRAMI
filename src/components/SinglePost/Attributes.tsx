@@ -1,3 +1,4 @@
+import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import {
     Typography,
     Grid,
@@ -10,22 +11,23 @@ import {
     GridProps,
     LinearProgress,
 } from '@mui/material';
-import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
-import { SingleSelector, MultiSelector, SourceSelector } from '../../components/AttributeSelectors';
-import { SettingsContext, UserSession } from '../../contexts';
-import { Post, PostAttributes, PostStatus } from '../../types';
+import { SingleSelector, MultiSelector, SourceSelector } from '../AttributeSelectors';
+import { SettingsContext, UserSessionContext } from '../../contexts';
+import { Post, PostAttributes, PostStatus, UserPermissions } from '../../types';
 import { aims } from '../../api';
 import { messages } from '../../constants';
+import { useActionState } from '../../hooks';
+import { hasOneOfPermissions } from '../../helpers';
 
 import SaveIcon from '@mui/icons-material/Save';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import React from 'react';
 
-export interface AttributesSectionProps {
+export interface AttributesProps<T extends PostStatus> {
     id: string;
+    postType: T;
     attributes: PostAttributes;
-    canEdit: boolean;
-    loggedInUser: UserSession;
-    onUpdate: (post: Post<PostStatus.InitialAwaitingValidation>) => void;
+    onUpdate: (newPost: Post<T>) => void;
 }
 
 const DialogItem = ({ children, ...rest }: GridProps) => (
@@ -34,14 +36,13 @@ const DialogItem = ({ children, ...rest }: GridProps) => (
     </Grid>
 );
 
-const AttributesSection = (props: AttributesSectionProps) => {
-    const { id, attributes, canEdit, loggedInUser, onUpdate } = props;
+const Attributes = <T extends PostStatus>(props: AttributesProps<T>) => {
+    const { id, postType, attributes, onUpdate } = props;
 
     const { settings } = useContext(SettingsContext);
+    const { user } = useContext(UserSessionContext);
 
-    const [isSaving, setIsSaving] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
+    const { status, output, setSuccess, setError, setIdle, setInProgress } = useActionState();
 
     const [newAttributes, setNewAttributes] = useState<PostAttributes>({
         ...attributes,
@@ -54,6 +55,20 @@ const AttributesSection = (props: AttributesSectionProps) => {
         () => JSON.stringify(newAttributes) !== JSON.stringify(attributes),
         [newAttributes, attributes],
     );
+
+    const canEdit = useMemo(
+        () =>
+            !!user?.userData.permissions &&
+            hasOneOfPermissions(
+                user.userData.permissions,
+                UserPermissions.Audit,
+                UserPermissions.AssignPermissions,
+                UserPermissions.Owner,
+            ),
+        [user?.userData.permissions],
+    );
+
+    const isSaving = useMemo(() => status === 'inProgress', [status]);
 
     const setNumericAttribute = useCallback(
         (attribute: keyof PostAttributes) => {
@@ -76,61 +91,51 @@ const AttributesSection = (props: AttributesSectionProps) => {
     useEffect(resetAttributes, [resetAttributes]);
 
     useEffect(() => {
-        if (!isSaving) return;
-
-        setError('');
+        if (user?.siteToken === undefined) return;
+        if (status !== 'inProgress') return;
 
         const controller = new AbortController();
 
-        aims.editSubmissionAttributes(
+        aims.editPostAttributes(
             {
                 baseURL: settings.serverUrl,
-                siteToken: loggedInUser.siteToken,
+                siteToken: user.siteToken,
                 controller,
                 rateLimitBypassToken: settings.rateLimitBypassToken,
             },
             newAttributes,
             id,
-        )
-            .then((res) => {
-                if (res === 'aborted') return;
-                if (res.success) {
-                    setSuccess(true);
-                    onUpdate(res.data);
-                } else if (res.generic) setError(messages.genericFail(res));
-                else if (res.status === 401) setError(messages[401](res.data));
-                else if (res.status === 403) setError(messages[403]());
-                else if (res.status === 404) setError('Submission Not Found');
-                else if (res.status === 429) setError(messages[429](res.data));
-                else if (res.status === 501) setError(messages[501]);
-                else throw res;
-            })
-            .finally(() => {
-                setIsSaving(false);
-            });
+            postType,
+        ).then((res) => {
+            if (res === 'aborted') setIdle();
+            else if (res.success) {
+                setSuccess();
+                onUpdate(res.data);
+            } else if (res.generic) setError(messages.genericFail(res));
+            else if (res.status === 401) setError(messages[401](res.data));
+            else if (res.status === 403) setError(messages[403]());
+            else if (res.status === 404) setError('Submission Not Found');
+            else if (res.status === 429) setError(messages[429](res.data));
+            else if (res.status === 501) setError(messages[501]);
+            else throw res;
+        });
 
         return () => {
             controller.abort();
         };
     }, [
         id,
-        isSaving,
-        loggedInUser.siteToken,
         newAttributes,
         onUpdate,
+        postType,
+        setError,
+        setIdle,
+        setSuccess,
         settings.rateLimitBypassToken,
         settings.serverUrl,
+        status,
+        user?.siteToken,
     ]);
-
-    useEffect(() => {
-        if (!success) return;
-
-        const timeout = setTimeout(() => setSuccess(false), 3000);
-
-        return () => {
-            clearTimeout(timeout);
-        };
-    }, [success]);
 
     return (
         <Grid container spacing={2}>
@@ -280,7 +285,7 @@ const AttributesSection = (props: AttributesSectionProps) => {
                 setSources={(newSources) => setNewAttributes({ ...newAttributes, sources: newSources })}
                 readonly={!canEdit}
             />
-            {canEdit && (
+            {!!canEdit && (
                 <Grid item xs={12}>
                     <Collapse in={hasChangedAttributes}>
                         <Stack direction="row" spacing={2}>
@@ -292,7 +297,7 @@ const AttributesSection = (props: AttributesSectionProps) => {
                                 startIcon={<SaveIcon />}
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    setIsSaving(true);
+                                    setInProgress();
                                 }}
                                 disabled={isSaving}
                             >
@@ -325,12 +330,12 @@ const AttributesSection = (props: AttributesSectionProps) => {
                         <LinearProgress />
                     </Stack>
                 </Collapse>
-                <Collapse in={error !== ''}>
+                <Collapse in={status === 'errored'}>
                     <Typography variant="h5" textAlign="center" color="lightcoral">
-                        {error}
+                        {output}
                     </Typography>
                 </Collapse>
-                <Collapse in={success}>
+                <Collapse in={status === 'success'}>
                     <Typography variant="h5" textAlign="center" color="lightgreen">
                         Changes Saved
                     </Typography>
@@ -340,4 +345,4 @@ const AttributesSection = (props: AttributesSectionProps) => {
     );
 };
 
-export default AttributesSection;
+export default Attributes;

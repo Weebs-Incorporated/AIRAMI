@@ -6,21 +6,19 @@ import { HomeButton } from '../../components/Buttons';
 import Footer from '../../components/Footer';
 import SiteBreadcrumbs from '../../components/SiteBreadcrumbs';
 import { messages } from '../../constants';
-import { SettingsContext, UserSessionContext } from '../../contexts';
+import { SettingsContext } from '../../contexts';
 import { Post, PostStatus } from '../../types';
-import NotLoggedInPage from '../NotLoggedIn/NotLoggedInPage';
 import { Page } from '../Page.styled';
 
 import SinglePost from '../../components/SinglePost';
 
 import { useActionState } from '../../hooks';
 
-const SingleSubmissionPage = () => {
-    const { user: loggedInUser } = useContext(UserSessionContext);
+const SinglePostPage = () => {
     const { settings } = useContext(SettingsContext);
     const { id } = useParams();
 
-    const [submission, setSubmission] = useState<Post<PostStatus.InitialAwaitingValidation>>();
+    const [post, setPost] = useState<Post<PostStatus.Public>>();
 
     const { status, output, setSuccess, setError, setIdle, setInProgress } = useActionState();
 
@@ -28,21 +26,18 @@ const SingleSubmissionPage = () => {
         // don't try fetching the submission if not desired
         if (status !== 'inProgress') return;
 
-        // don't try fetching the submission if not logged in
-        if (loggedInUser?.siteToken === undefined) return;
-
         // don't try fetching the submission if no ID is specified
         if (id === undefined) return;
 
         // don't try fetching the submissison if we've already fetched it
-        if (submission?._id === id) return;
+        if (post?._id === id) return;
 
         const controller = new AbortController();
 
-        aims.getSubmission(
+        aims.getPost(
             {
                 baseURL: settings.serverUrl,
-                siteToken: loggedInUser.siteToken,
+                siteToken: undefined,
                 controller,
                 rateLimitBypassToken: settings.rateLimitBypassToken,
             },
@@ -51,11 +46,9 @@ const SingleSubmissionPage = () => {
             if (res === 'aborted') setIdle();
             else if (res.success) {
                 setSuccess();
-                setSubmission(res.data);
+                setPost(res.data);
             } else if (res.generic) setError(messages.genericFail(res));
-            else if (res.status === 401) setError(messages[401](res.data));
-            else if (res.status === 403) setError(messages[403]());
-            else if (res.status === 404) setError('Submission Not Found');
+            else if (res.status === 404) setError('Post Not Found');
             else if (res.status === 429) setError(messages[429](res.data));
             else if (res.status === 501) setError(messages[501]);
             else throw res;
@@ -64,17 +57,7 @@ const SingleSubmissionPage = () => {
         return () => {
             controller.abort();
         };
-    }, [
-        id,
-        loggedInUser?.siteToken,
-        setError,
-        setIdle,
-        setSuccess,
-        settings.rateLimitBypassToken,
-        settings.serverUrl,
-        status,
-        submission?._id,
-    ]);
+    }, [id, post?._id, setError, setIdle, setSuccess, settings.rateLimitBypassToken, settings.serverUrl, status]);
 
     useEffect(() => {
         setInProgress();
@@ -86,7 +69,7 @@ const SingleSubmissionPage = () => {
                 <SiteBreadcrumbs
                     items={[
                         { to: '/', text: 'Home' },
-                        { to: '/submissions', text: 'Submissions' },
+                        { to: '/posts', text: 'Posts' },
                     ]}
                 />
                 <div style={{ flexGrow: 1 }} />
@@ -100,17 +83,13 @@ const SingleSubmissionPage = () => {
         );
     }
 
-    if (loggedInUser === null) {
-        return <NotLoggedInPage breadcrumbItems={[{ to: '/submissions', text: 'Submissions' }]} />;
-    }
-
     if (status === 'errored') {
         return (
             <>
                 <SiteBreadcrumbs
                     items={[
                         { to: '/', text: 'Home' },
-                        { to: '/submissions', text: 'Submissions' },
+                        { to: '/posts', text: 'Posts' },
                     ]}
                 />
                 <div style={{ flexGrow: 1 }} />
@@ -124,13 +103,13 @@ const SingleSubmissionPage = () => {
         );
     }
 
-    if (submission?._id !== id) {
+    if (post?._id !== id) {
         return (
             <>
                 <div style={{ flexGrow: 1 }} />
                 <Typography variant="h2">Loading</Typography>
                 <Typography variant="subtitle2" color="gray">
-                    Fetching Submission...
+                    Fetching Post...
                 </Typography>
                 <CircularProgress size={60} sx={{ mt: 3 }} />
                 <Footer />
@@ -143,15 +122,15 @@ const SingleSubmissionPage = () => {
             <SiteBreadcrumbs
                 items={[
                     { to: '/', text: 'Home' },
-                    { to: '/submissions', text: 'Submissions' },
+                    { to: '/posts', text: 'Posts' },
                 ]}
             />
             <Page maxWidth="xl">
-                <SinglePost post={submission} onUpdate={setSubmission} />
+                <SinglePost post={post} onUpdate={setPost} />
                 <Footer />
             </Page>
         </>
     );
 };
 
-export default SingleSubmissionPage;
+export default SinglePostPage;
